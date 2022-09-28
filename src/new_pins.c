@@ -15,6 +15,7 @@
 #include "hal/hal_flashVars.h"
 #include "hal/hal_pins.h"
 #include "hal/hal_adc.h"
+#include "timers.h"
 
 
 //According to your need to modify the constants.
@@ -646,7 +647,6 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	// call following in some nice loop
 	// that transitions on a set curve
 	int stepVal;
-	int i;
 	int delta = iVal - prevValue;
 
 	// Perform an action every 10 ticks.
