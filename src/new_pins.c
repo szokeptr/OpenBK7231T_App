@@ -652,7 +652,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	
   for (i = 1; i < 30; ++i)
   {
-    stepVal = BezierBlend(30 / i) * delta;
+    stepVal = BezierBlend(i / 30) * delta;
 
 		g_channelValues[ch] = iVal + stepVal;
 		
