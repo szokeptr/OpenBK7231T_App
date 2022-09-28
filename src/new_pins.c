@@ -554,9 +554,6 @@ static void Channel_OnChangedTransitionStep(int ch, int prevValue, int nextValue
 	iVal = nextValue;
 	bOn = iVal > 0;
 
-	addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"Channel_OnChangedTransitionStep %i has changed to %i\n\r",ch,nextValue);
-	
-
 	for(i = 0; i < PLATFORM_GPIO_MAX; i++) {
 		if(g_cfg.pins.channels[i] == ch) {
 			if(g_cfg.pins.roles[i] == IOR_Relay || g_cfg.pins.roles[i] == IOR_LED) {
@@ -652,7 +649,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	// Perform an action every 10 ticks.
 
 	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = 10;
+	const TickType_t xFrequency = 5;
 
 	// Initialise the xLastWakeTime variable with the current time.
 	xLastWakeTime = xTaskGetTickCount ();
@@ -664,12 +661,11 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 
 			// Perform action here. xWasDelayed value can be used to determine
 			// whether a deadline was missed if the code here took too long.
-			stepVal = ((float)i / 30.0f) * delta;
-			addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"CHANNEL_Set %i delta is %i, prev value is %i, step val is %i, multiplier is %f\n\r", ch, delta, prevValue, stepVal, ((float)i / 30.0f));
+			stepVal = ((float)i / 60) * delta;
 			Channel_OnChangedTransitionStep(ch,prevValue, prevValue + stepVal);
 			i++;
 
-			if (i > 30) {
+			if (i > 60) {
 				break;
 			}
 	}
