@@ -543,6 +543,38 @@ static void Channel_OnChanged(int ch, int prevValue, int iFlags) {
 
 	Channel_SaveInFlashIfNeeded(ch);
 }
+static void Channel_OnChangedTransitionStep(int ch, int prevValue) {
+	int i;
+	int iVal;
+	int bOn;
+
+
+	//bOn = BIT_CHECK(g_channelStates,ch);
+	iVal = g_channelValues[ch];
+	bOn = iVal > 0;
+
+	for(i = 0; i < PLATFORM_GPIO_MAX; i++) {
+		if(g_cfg.pins.channels[i] == ch) {
+			if(g_cfg.pins.roles[i] == IOR_Relay || g_cfg.pins.roles[i] == IOR_LED) {
+				RAW_SetPinValue(i,bOn);
+			}
+			else if(g_cfg.pins.roles[i] == IOR_Relay_n || g_cfg.pins.roles[i] == IOR_LED_n) {
+				RAW_SetPinValue(i,!bOn);
+			}
+			else if(g_cfg.pins.roles[i] == IOR_DigitalInput || g_cfg.pins.roles[i] == IOR_DigitalInput_n
+				|| g_cfg.pins.roles[i] == IOR_DigitalInput_NoPup || g_cfg.pins.roles[i] == IOR_DigitalInput_NoPup_n) {
+			}
+			else if(g_cfg.pins.roles[i] == IOR_ToggleChannelOnToggle) {
+			}
+			else if(g_cfg.pins.roles[i] == IOR_PWM) {
+				HAL_PIN_PWM_Update(i,iVal);
+			}
+			else if(g_cfg.pins.roles[i] == IOR_PWM_n) {
+				HAL_PIN_PWM_Update(i,100-iVal);
+			}
+		}
+	}
+}
 void CFG_ApplyChannelStartValues() {
 	int i;
 	for(i = 0; i < CHANNEL_MAX; i++) {
@@ -562,6 +594,11 @@ int CHANNEL_Get(int ch) {
 		return 0;
 	}
 	return g_channelValues[ch];
+}
+
+float BezierBlend(float t)
+{
+    return t * t * (3.0f - 2.0f * t);
 }
 
 void CHANNEL_Set(int ch, int iVal, int iFlags) {
@@ -602,6 +639,21 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	if(bSilent==0) {
 		addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"CHANNEL_Set channel %i has changed to %i (flags %i)\n\r",ch,iVal,iFlags);
 	}
+	
+	// call following in some nice loop
+	// that transitions on a set curve
+	int stepVal;
+	int i;
+	int delta = iVal - prevValue;
+  for (i = 1; i < 30; ++i)
+  {
+    stepVal = BezierBlend(30 / i) * delta;
+
+		g_channelValues[ch] = iVal + stepVal;
+
+	  Channel_OnChangedTransitionStep(ch,prevValue);
+  }
+  
 	g_channelValues[ch] = iVal;
 
 	Channel_OnChanged(ch,prevValue,iFlags);

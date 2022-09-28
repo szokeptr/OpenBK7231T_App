@@ -191,6 +191,7 @@ void CHANNEL_DoSpecialToggleAll();
 bool CHANNEL_Check(int ch);
 void PIN_SetGenericDoubleClickCallback(void (*cb)(int pinIndex));
 // CHANNEL_SET_FLAG_*
+float BezierBlend(float t);
 void CHANNEL_Set(int ch, int iVal, int iFlags);
 void CHANNEL_Add(int ch, int iVal);
 void CHANNEL_AddClamped(int ch, int iVal, int min, int max);
