@@ -653,7 +653,6 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 
 	TickType_t xLastWakeTime;
 	const TickType_t xFrequency = 10;
-	BaseType_t xWasDelayed;
 
 	// Initialise the xLastWakeTime variable with the current time.
 	xLastWakeTime = xTaskGetTickCount ();
@@ -661,7 +660,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	for( ;; )
 	{
 			// Wait for the next cycle.
-			xWasDelayed = xTaskDelayUntil( &xLastWakeTime, xFrequency );
+			vTaskDelayUntil( &xLastWakeTime, xFrequency );
 
 			// Perform action here. xWasDelayed value can be used to determine
 			// whether a deadline was missed if the code here took too long.
