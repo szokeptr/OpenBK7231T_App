@@ -544,7 +544,7 @@ static void Channel_OnChanged(int ch, int prevValue, int iFlags) {
 
 	Channel_SaveInFlashIfNeeded(ch);
 }
-static void Channel_OnChangedTransitionStep(int ch, int prevValue, int nextValue) {
+static void Channel_OnChangedTransitionStep(int ch, int nextValue) {
 	int i;
 	int iVal;
 	int bOn;
@@ -602,6 +602,59 @@ float BezierBlend(float t)
     return t * t * (3.0f - 2.0f * t);
 }
 
+void TransitionChannelValue(void *data)
+{
+	channel_transition_params_t config = *(channel_transition_params_t *) data;
+
+	int stepVal;
+	int delta = config.toValue - config.toValue;
+
+	// Perform an action every 10 ticks.
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = 5;
+
+	// Initialise the xLastWakeTime variable with the current time.
+	xLastWakeTime = xTaskGetTickCount ();
+	// use portTICK_PERIOD_MS for actual timing
+	int i = 0;
+	for( ;; )
+	{
+			// Wait for the next cycle.
+			vTaskDelayUntil( &xLastWakeTime, xFrequency );
+
+			// Perform action here. xWasDelayed value can be used to determine
+			// whether a deadline was missed if the code here took too long.
+			stepVal = ((float)i / 120) * delta;
+			Channel_OnChangedTransitionStep(config.ch, config.fromValue + stepVal);
+			i++;
+
+			if (i > 120) {
+				break;
+			}
+	}
+}
+
+void scheduleTransition(int ch, int fromValue, int toValue)
+{
+	static beken_thread_t thread;
+	channel_transition_params_t *params = pvPortMalloc( sizeof ( channel_transition_params_t ) );
+
+	params->ch = ch;
+	params->fromValue = fromValue;
+	params->toValue = toValue;
+
+	rtos_create_thread(
+		&thread,
+		1,
+		'transition',
+		(beken_thread_function_t) TransitionChannelValue,
+		1024,
+		params
+	);
+}
+
+
+
 void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	int prevValue;
 	int bForce;
@@ -643,33 +696,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	
 	// call following in some nice loop
 	// that transitions on a set curve
-	int stepVal;
-	int delta = iVal - prevValue;
-
-	// Perform an action every 10 ticks.
-
-	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = 5;
-
-	// Initialise the xLastWakeTime variable with the current time.
-	xLastWakeTime = xTaskGetTickCount ();
-	int i = 0;
-	for( ;; )
-	{
-			// Wait for the next cycle.
-			vTaskDelayUntil( &xLastWakeTime, xFrequency );
-
-			// Perform action here. xWasDelayed value can be used to determine
-			// whether a deadline was missed if the code here took too long.
-			stepVal = ((float)i / 120) * delta;
-			Channel_OnChangedTransitionStep(ch,prevValue, prevValue + stepVal);
-			i++;
-
-			if (i > 120) {
-				break;
-			}
-	}
-  
+	scheduleTransition(ch, prevValue, iVal);
 	g_channelValues[ch] = iVal;
 
 	Channel_OnChanged(ch,prevValue,iFlags);
