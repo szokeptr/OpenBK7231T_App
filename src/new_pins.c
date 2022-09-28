@@ -648,6 +648,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	int stepVal;
 	int i;
 	int delta = iVal - prevValue;
+	addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"CHANNEL_Set %i delta is %i, prev value is %i\n\r", ch, delta, prevValue);
 	
   for (i = 1; i < 30; ++i)
   {
@@ -658,6 +659,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	  Channel_OnChangedTransitionStep(ch,prevValue);
 		rtos_delay_milliseconds(1000 / 30);
   }
+	rtos_delay_milliseconds(1000);
   
 	g_channelValues[ch] = iVal;
 
