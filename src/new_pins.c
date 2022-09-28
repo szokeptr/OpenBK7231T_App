@@ -543,17 +543,17 @@ static void Channel_OnChanged(int ch, int prevValue, int iFlags) {
 
 	Channel_SaveInFlashIfNeeded(ch);
 }
-static void Channel_OnChangedTransitionStep(int ch, int prevValue) {
+static void Channel_OnChangedTransitionStep(int ch, int prevValue, int nextValue) {
 	int i;
 	int iVal;
 	int bOn;
 
 
 	//bOn = BIT_CHECK(g_channelStates,ch);
-	iVal = g_channelValues[ch];
+	iVal = nextValue;
 	bOn = iVal > 0;
 
-	addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"Channel_OnChangedTransitionStep %i has changed to %i\n\r",ch,g_channelValues[ch]);
+	addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"Channel_OnChangedTransitionStep %i has changed to %i\n\r",ch,nextValue);
 	
 
 	for(i = 0; i < PLATFORM_GPIO_MAX; i++) {
@@ -648,15 +648,12 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	int stepVal;
 	int i;
 	int delta = iVal - prevValue;
-	addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"CHANNEL_Set %i delta is %i, prev value is %i\n\r", ch, delta, prevValue);
 	
   for (i = 1; i <= 30; i++)
   {
     stepVal = (i / 30) * delta;
-
-		g_channelValues[ch] = prevValue + stepVal;
-		
-	  Channel_OnChangedTransitionStep(ch,prevValue);
+		addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"CHANNEL_Set %i delta is %i, prev value is %i, step val is %i\n\r", ch, delta, prevValue, stepVal);
+	  Channel_OnChangedTransitionStep(ch,prevValue, prevValue + stepVal);
 		rtos_delay_milliseconds(1000.0f / 30.0f);
   }
 	rtos_delay_milliseconds(1000.0f);
