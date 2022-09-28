@@ -661,11 +661,11 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 
 			// Perform action here. xWasDelayed value can be used to determine
 			// whether a deadline was missed if the code here took too long.
-			stepVal = ((float)i / 60) * delta;
+			stepVal = ((float)i / 120) * delta;
 			Channel_OnChangedTransitionStep(ch,prevValue, prevValue + stepVal);
 			i++;
 
-			if (i > 60) {
+			if (i > 120) {
 				break;
 			}
 	}
