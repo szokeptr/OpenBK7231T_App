@@ -648,15 +648,32 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	int stepVal;
 	int i;
 	int delta = iVal - prevValue;
-	
-  for (i = 1; i <= 30; i++)
-  {
-    stepVal = ((float)i / 30.0f) * delta;
-		addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"CHANNEL_Set %i delta is %i, prev value is %i, step val is %i, multiplier is %f\n\r", ch, delta, prevValue, stepVal, ((float)i / 30.0f));
-	  Channel_OnChangedTransitionStep(ch,prevValue, prevValue + stepVal);
-		rtos_delay_milliseconds(1000.0f / 30.0f);
-  }
-	rtos_delay_milliseconds(1000.0f);
+
+	// Perform an action every 10 ticks.
+
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = 10;
+	BaseType_t xWasDelayed;
+
+	// Initialise the xLastWakeTime variable with the current time.
+	xLastWakeTime = xTaskGetTickCount ();
+	int i = 0;
+	for( ;; )
+	{
+			// Wait for the next cycle.
+			xWasDelayed = xTaskDelayUntil( &xLastWakeTime, xFrequency );
+
+			// Perform action here. xWasDelayed value can be used to determine
+			// whether a deadline was missed if the code here took too long.
+			stepVal = ((float)i / 30.0f) * delta;
+			addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"CHANNEL_Set %i delta is %i, prev value is %i, step val is %i, multiplier is %f\n\r", ch, delta, prevValue, stepVal, ((float)i / 30.0f));
+			Channel_OnChangedTransitionStep(ch,prevValue, prevValue + stepVal);
+			i++;
+
+			if (i > 30) {
+				break;
+			}
+	}
   
 	g_channelValues[ch] = iVal;
 
