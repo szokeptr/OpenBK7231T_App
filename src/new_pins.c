@@ -650,16 +650,16 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	int delta = iVal - prevValue;
 	addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"CHANNEL_Set %i delta is %i, prev value is %i\n\r", ch, delta, prevValue);
 	
-  for (i = 1; i < 30; ++i)
+  for (i = 1; i <= 30; i++)
   {
     stepVal = BezierBlend(i / 30) * delta;
 
-		g_channelValues[ch] = iVal + stepVal;
+		g_channelValues[ch] = prevValue + stepVal;
 		
 	  Channel_OnChangedTransitionStep(ch,prevValue);
-		rtos_delay_milliseconds(1000 / 30);
+		rtos_delay_milliseconds(1000.0f / 30.0f);
   }
-	rtos_delay_milliseconds(1000);
+	rtos_delay_milliseconds(1000.0f);
   
 	g_channelValues[ch] = iVal;
 
