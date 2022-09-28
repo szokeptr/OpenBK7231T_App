@@ -1,7 +1,7 @@
 #ifndef __NEW_PINS_H__
 #define __NEW_PINS_H__
 #include "new_common.h"
-
+#include "timers.h"
 
 enum IORole {
 	IOR_None,
