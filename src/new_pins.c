@@ -553,7 +553,8 @@ static void Channel_OnChangedTransitionStep(int ch, int prevValue) {
 	iVal = g_channelValues[ch];
 	bOn = iVal > 0;
 
-	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel_OnChangedTransitionStep %i has changed to %i\n\r",ch,g_channelValues[ch]);
+	addLogAdv(LOG_INFO, LOG_FEATURE_CMD,"Channel_OnChangedTransitionStep %i has changed to %i\n\r",ch,g_channelValues[ch]);
+	
 
 	for(i = 0; i < PLATFORM_GPIO_MAX; i++) {
 		if(g_cfg.pins.channels[i] == ch) {
@@ -647,6 +648,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	int stepVal;
 	int i;
 	int delta = iVal - prevValue;
+	
   for (i = 1; i < 30; ++i)
   {
     stepVal = BezierBlend(30 / i) * delta;
@@ -654,6 +656,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 		g_channelValues[ch] = iVal + stepVal;
 		
 	  Channel_OnChangedTransitionStep(ch,prevValue);
+		rtos_delay_milliseconds(1000 / 30);
   }
   
 	g_channelValues[ch] = iVal;
