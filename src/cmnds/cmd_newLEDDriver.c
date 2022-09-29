@@ -348,25 +348,51 @@ static int enableAll(const void *context, const char *cmd, const char *args, int
 }
 static int commandJson(const void *context, const char *cmd, const char *args, int cmdFlags) {
 	ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) received with args %s",cmd,args);
-	jsmn_parser p;
-  jsmntok_t t[128]; /* We expect no more than 128 tokens */
-	int r;
 	int i;
-  jsmn_init(&p);
-  r = jsmn_parse(&p, args, strlen(args), t,
-                 sizeof(t) / sizeof(t[0]));
-  if (r < 0) {
-    ADDLOG_ERROR(LOG_FEATURE_CMD, "Failed to parse JSON: %d\n", r);
-    return 1;
-  }
+	int r;
+	char tmp[64];
+	jsmn_parser *p = os_malloc(sizeof(jsmn_parser));
+    //jsmntok_t t[128]; /* We expect no more than 128 tokens */
+#define TOKEN_COUNT 128
+    jsmntok_t *t = os_malloc(sizeof(jsmntok_t)*TOKEN_COUNT);
+    char *json_str = args;
+    int json_len = strlen(json_str);
 
-  /* Assume the top-level element is an object */
-  if (r < 1 || t[0].type != JSMN_OBJECT) {
-    ADDLOG_ERROR(LOG_FEATURE_CMD, "Object expected\n");
-    return 1;
-  }
+	memset(p, 0, sizeof(jsmn_parser));
+	memset(t, 0, sizeof(jsmntok_t)*128);
 
-	return 0;
+    jsmn_init(p);
+    r = jsmn_parse(p, json_str, json_len, t, TOKEN_COUNT);
+    if (r < 0) {
+        ADDLOG_ERROR(LOG_FEATURE_API, "Failed to parse JSON: %d", r);
+        sprintf(tmp,"Failed to parse JSON: %d\n", r);
+        os_free(p);
+        os_free(t);
+        return 1;
+    }
+
+    /* Assume the top-level element is an object */
+    if (r < 1 || t[0].type != JSMN_ARRAY) {
+        ADDLOG_ERROR(LOG_FEATURE_API, "Array expected", r);
+        sprintf(tmp,"Object expected\n");
+        os_free(p);
+        os_free(t);
+        return 1;
+    }
+
+    /* Loop over all keys of the root object */
+    for (i = 1; i < r; i++) {
+        int chanval;
+        jsmntok_t *g = &t[i];
+        // chanval = atoi(json_str + g->start);
+        // CHANNEL_Set(i-1, chanval, 0);
+        ADDLOG_DEBUG(LOG_FEATURE_API, "Set of chan %s", i,
+                g);
+    }
+
+    os_free(p);
+    os_free(t);
+    return 0;
 }
 int LED_IsRunningDriver() {
 	if(PIN_CountPinsWithRoleOrRole(IOR_PWM,IOR_PWM_n))
