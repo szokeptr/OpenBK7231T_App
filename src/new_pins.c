@@ -564,9 +564,9 @@ int CHANNEL_Get(int ch) {
 	return g_channelValues[ch];
 }
 
-static void Channel_OnChangedTransitionStep(int ch, float nextValue) {
+static void Channel_OnChangedTransitionStep(int ch, int nextValue) {
   int i;
-  float iVal;
+  int iVal;
   int bOn;
 
 
@@ -618,11 +618,11 @@ static void timer_handler( beken_thread_arg_t arg )
 	// Initialise the xLastWakeTime variable with the current time.
 	xLastWakeTime = xTaskGetTickCount();
 	int i = 0;
-	float previous = config->from;
+	int previous = config->from;
 	for( ;; )
 	{	
-			float stepVal = BezierBlend((float)i / frames) * delta;
-			float next = config->from + stepVal;
+			int stepVal = BezierBlend((float)i / frames) * delta;
+			int next = config->from + stepVal;
 			if (previous != next) {
 				Channel_OnChangedTransitionStep(config->ch, next);
 			}
