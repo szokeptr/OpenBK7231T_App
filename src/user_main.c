@@ -353,23 +353,22 @@ int Main_GetLastRebootBootFailures() {
 	return g_bootFailures;
 }
 
-beken_timer_t led_timer;
+beken_thread_t test_thread;
 static void timer_handler(void *data)
 {
-	ADDLOGF_INFO("Timer fired");
+	ADDLOGF_INFO("Thread callback called");
 }
 
 void myInit()
 {
     OSStatus err;
 
-    err = rtos_init_timer(&led_timer,
-                          1 * 1000,
+    err = rtos_create_thread(&test_thread,
+													1,
+													"test-thread",
                           timer_handler,
+													0x400,
                           (void *)0);
-    ASSERT(kNoErr == err);
-
-    err = rtos_start_timer(&led_timer);
     ASSERT(kNoErr == err);
 }
 
