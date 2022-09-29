@@ -567,7 +567,7 @@ int CHANNEL_Get(int ch) {
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
-	channelTransitionConfig_t config = *(channelTransitionConfig_t*) arg;
+	channelTransitionConfig_t config = (channelTransitionConfig_t) &arg;
 	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called: ch=%i; from=%i; to=%i", config.ch, config.from, config.to);
 
 	rtos_delete_thread( NULL );
@@ -578,12 +578,9 @@ void myInit(int ch, int from, int to)
 {
 
 		channelTransitionConfig_t *config = pvPortMalloc( sizeof ( channelTransitionConfig_t ) );
-		config->ch = (int *)pvPortMalloc( sizeof ( int ) );
-		*( config->ch ) = ch;
-		config->from = (int *)pvPortMalloc( sizeof ( int ) );
-		*( config->from ) = ch;
-		config->to = (int *)pvPortMalloc( sizeof ( int ) );
-		*( config->to ) = ch;
+		config->ch = ch;
+		config->from = from;
+		config->to = to;
 
     OSStatus err = kNoErr;
 
