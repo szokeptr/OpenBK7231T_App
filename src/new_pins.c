@@ -636,7 +636,7 @@ static void timer_handler( beken_thread_arg_t arg )
 	for( ;; )
 	{	
 			vTaskDelay( durationMs / frames / portTICK_PERIOD_MS );
-			int stepVal = ((float)i / frames) * delta;
+			int stepVal = BezierBlend((float)i / frames) * delta;
 			int next = from + stepVal;
 			if (previous != next) {
 				HAL_PIN_PWM_Update(pwmChannel,next);
