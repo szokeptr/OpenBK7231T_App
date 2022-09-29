@@ -353,31 +353,6 @@ int Main_GetLastRebootBootFailures() {
 	return g_bootFailures;
 }
 
-static xTaskHandle test_thread = NULL;
-static void timer_handler( beken_thread_arg_t arg )
-{
-	int config = (int*) arg;
-	ADDLOGF_INFO("Thread callback called %i", config);
-
-	rtos_delete_thread( NULL );
-}
-
-void myInit()
-{
-    OSStatus err = kNoErr;
-
-    err = rtos_create_thread( &test_thread, 6,
-									"Test Thread",
-									(beken_thread_function_t)timer_handler,
-									0x800,
-									(beken_thread_arg_t)420 );
-    if(err != kNoErr)
-    {
-		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
-    }
-    ASSERT(kNoErr == err);
-}
-
 #define RESTARTS_REQUIRED_FOR_SAFE_MODE 4
 
 void Main_Init()
@@ -498,7 +473,6 @@ void Main_Init()
 
 		NewLED_RestoreSavedStateIfNeeded();
 
-		myInit();
 	}
 
 }

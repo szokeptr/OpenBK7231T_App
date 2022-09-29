@@ -564,6 +564,31 @@ int CHANNEL_Get(int ch) {
 	return g_channelValues[ch];
 }
 
+static xTaskHandle test_thread = NULL;
+static void timer_handler( beken_thread_arg_t arg )
+{
+	int config = (int*) arg;
+	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called, %i", config);
+
+	rtos_delete_thread( NULL );
+}
+
+void myInit(int ch)
+{
+    OSStatus err = kNoErr;
+
+    err = rtos_create_thread( &test_thread, 6,
+									"Test Thread",
+									(beken_thread_function_t)timer_handler,
+									0x800,
+									(beken_thread_arg_t)ch );
+    if(err != kNoErr)
+    {
+		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
+    }
+    ASSERT(kNoErr == err);
+}
+
 void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	int prevValue;
 	int bForce;
@@ -602,6 +627,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	if(bSilent==0) {
 		addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"CHANNEL_Set channel %i has changed to %i (flags %i)\n\r",ch,iVal,iFlags);
 	}
+	myInit(ch);
 	g_channelValues[ch] = iVal;
 
 	Channel_OnChanged(ch,prevValue,iFlags);
