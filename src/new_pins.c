@@ -649,10 +649,6 @@ static void timer_handler( beken_thread_arg_t arg )
 			}
 	}
 
-	g_channelValues[config->ch] = config->to;
-
-	Channel_OnChanged(config->ch, config->from, config->iFlags);
-
 	rtos_delete_thread( NULL );
 	
 }
