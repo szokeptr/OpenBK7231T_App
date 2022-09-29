@@ -357,11 +357,13 @@ static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
 	ADDLOGF_INFO("Thread callback called");
+
+	rtos_delete_thread( NULL );
 }
 
 void myInit()
 {
-    OSStatus err;
+    OSStatus err = kNoErr;
 
     err = rtos_create_thread( &test_thread, 6,
 									"Test Thread",
