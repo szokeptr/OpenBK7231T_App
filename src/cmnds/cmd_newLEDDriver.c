@@ -392,13 +392,14 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
     /* Loop over all keys of the root object */
     for (i = 1; i < r; i++) {
 			if (jsoneq(json_str, &t[i], "state")) {
-				ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", r);
-				params.state = json_get_str(json_str, &t[i + 1]);
+				char *state = json_get_str(json_str, &t[i + 1]);
+				ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", &state);
+				params.state = &state;
 				i++;
 			}
     }
 
-		ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) Parsed: state=%s;",cmd,&params.state);
+		ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) Parsed: state=%s;",cmd,params.state);
 
     os_free(p);
     os_free(t);
