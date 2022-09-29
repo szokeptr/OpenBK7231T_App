@@ -567,8 +567,8 @@ int CHANNEL_Get(int ch) {
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
-	channelTransitionConfig_t config = (channelTransitionConfig_t) &arg;
-	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called: ch=%i; from=%i; to=%i", config.ch, config.from, config.to);
+	channelTransitionConfig_t *config = (channelTransitionConfig_t*) arg;
+	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called: ch=%i; from=%i; to=%i", &config.ch, &config.from, $config.to);
 
 	rtos_delete_thread( NULL );
 	
