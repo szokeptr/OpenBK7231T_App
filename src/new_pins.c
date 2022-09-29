@@ -15,7 +15,7 @@
 #include "hal/hal_flashVars.h"
 #include "hal/hal_pins.h"
 #include "hal/hal_adc.h"
-
+#include "math.h"
 
 //According to your need to modify the constants.
 #define PIN_TMR_DURATION      5 // Delay (in ms) between button scan iterations
@@ -596,6 +596,12 @@ static void Channel_OnChangedTransitionStep(int ch, int nextValue) {
     }
   }
 }
+
+float BezierBlend(float t)
+{
+    return t * t * (3.0f - 2.0f * t);
+}
+
 const int durationMs = 1000;
 const int frames = 120; 
 static xTaskHandle test_thread = NULL;
@@ -607,10 +613,15 @@ static void timer_handler( beken_thread_arg_t arg )
 	int delta = config->to - config->from;
 
 	int i = 0;
+	int previous = config->from;
 	for( ;; )
 	{
-			int stepVal = ((float)i / frames) * delta;
-			Channel_OnChangedTransitionStep(config->ch, config->from + stepVal);
+			int stepVal = BezierBlend(i / frames) * delta;
+			int next = config->from + stepVal;
+			if (previous != next) {
+				Channel_OnChangedTransitionStep(config->ch, next);
+			}
+			previous = next;
 			i++;
 
 			if (i > frames) {
