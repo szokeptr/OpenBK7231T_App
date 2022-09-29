@@ -353,8 +353,8 @@ int Main_GetLastRebootBootFailures() {
 	return g_bootFailures;
 }
 
-beken_thread_t test_thread;
-static void timer_handler(void *data)
+static xTaskHandle test_thread = NULL;
+static void timer_handler( beken_thread_arg_t arg )
 {
 	ADDLOGF_INFO("Thread callback called");
 }
@@ -363,12 +363,15 @@ void myInit()
 {
     OSStatus err;
 
-    err = rtos_create_thread(&test_thread,
-													1,
-													"test-thread",
-                          timer_handler,
-													0x400,
-                          (void *)0);
+    err = rtos_create_thread( &test_thread, 6,
+									"Test Thread",
+									(beken_thread_function_t)timer_handler,
+									0x800,
+									(beken_thread_arg_t)0 );
+    if(err != kNoErr)
+    {
+		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
+    }
     ASSERT(kNoErr == err);
 }
 
