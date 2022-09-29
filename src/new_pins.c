@@ -596,7 +596,8 @@ static void Channel_OnChangedTransitionStep(int ch, int nextValue) {
     }
   }
 }
-
+const int durationMs = 1000;
+const int frames = 120; 
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
@@ -604,9 +605,6 @@ static void timer_handler( beken_thread_arg_t arg )
 	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called: ch=%i; from=%i; to=%i", config->ch, config->from, config->to);
 
 	int delta = config->to - config->from;
-
-	const int durationMs = 1000;
-	const int frames = 120; 
 
 	int i = 0;
 	for( ;; )
@@ -641,10 +639,10 @@ void myInit(int ch, int from, int to, int iFlags)
 
     OSStatus err = kNoErr;
 
-    err = rtos_create_thread( &test_thread, 5,
+    err = rtos_create_thread( &test_thread, BEKEN_NO_WAIT,
 									"Test Thread",
 									(beken_thread_function_t)timer_handler,
-									0x800,
+									0x100,
 									(beken_thread_arg_t)config );
     if(err != kNoErr)
     {
