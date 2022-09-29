@@ -344,6 +344,9 @@ static int enableAll(const void *context, const char *cmd, const char *args, int
 	//}
 	//return 0;
 }
+static int commandJson(const void *context, const char *cmd, const char *args, int cmdFlags) {
+	ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) received with args %s",cmd,args);
+}
 int LED_IsRunningDriver() {
 	if(PIN_CountPinsWithRoleOrRole(IOR_PWM,IOR_PWM_n))
 		return 1;
@@ -559,6 +562,7 @@ static int setHue(const void *context, const char *cmd, const char *args, int cm
 void NewLED_InitCommands(){
     CMD_RegisterCommand("led_dimmer", "", dimmer, "set output dimmer 0..100", NULL);
     CMD_RegisterCommand("led_enableAll", "", enableAll, "qqqq", NULL);
+		CMD_RegisterCommand("led_commandJson", "", commandJson, "qqqq", NULL);
     CMD_RegisterCommand("led_basecolor_rgb", "", basecolor_rgb, "set PWN color using #RRGGBB", NULL);
     CMD_RegisterCommand("led_basecolor_rgbcw", "", basecolor_rgbcw, "set PWN color using #RRGGBB[cw][ww]", NULL);
     CMD_RegisterCommand("led_temperature", "", temperature, "set qqqq", NULL);
