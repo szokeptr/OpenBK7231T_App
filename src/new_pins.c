@@ -614,13 +614,26 @@ static void timer_handler( beken_thread_arg_t arg )
 	int from = config->from;
 	int i = 0;
 	int previous = config->from;
+	int j;
+
+	int pwmChannel;
+
+  for(j = 0; j < PLATFORM_GPIO_MAX; j++) {
+    if(g_cfg.pins.channels[i] == config->ch) {
+			pwmChannel = j;
+      if (g_cfg.pins.roles[i] != IOR_PWM) {
+				return;
+			}
+    }
+  }
 	for( ;; )
 	{	
 			vTaskDelay( durationMs / frames / portTICK_PERIOD_MS );
 			int stepVal = ((float)i / frames) * delta;
 			int next = from + stepVal;
 			if (previous != next) {
-				Channel_OnChangedTransitionStep(config->ch, next);
+				HAL_PIN_PWM_Update(pwmChannel,next);
+				// Channel_OnChangedTransitionStep(config->ch, next);
 			}
 			previous = next;
 			i++;
@@ -663,7 +676,7 @@ void myInit(int ch, int from, int to, int iFlags)
 
 void CHANNEL_Pulse(int ch, int iVal, int iFlags) {
 	myInit(ch, 0, 100, iFlags);
-	// myInit(ch, 100, 0, iFlags);
+	// myInit(åch, 100, 0, iFlags);
 }
 
 void CHANNEL_Set(int ch, int iVal, int iFlags) {
