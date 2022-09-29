@@ -602,7 +602,7 @@ float BezierBlend(float t)
     return t * t * (3.0f - 2.0f * t);
 }
 
-const float durationMs = 1000.0f;
+const float durationMs = 600.0f;
 const float frames = 60.0f; 
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
@@ -618,7 +618,7 @@ static void timer_handler( beken_thread_arg_t arg )
 	for( ;; )
 	{	
 			vTaskDelay( durationMs / frames / portTICK_PERIOD_MS );
-			int stepVal = ((float)i / frames) * delta;
+			int stepVal = BezierBlend((float)i / frames) * delta;
 			int next = from + stepVal;
 			if (previous != next) {
 				g_channelValues[config->ch] = next;
