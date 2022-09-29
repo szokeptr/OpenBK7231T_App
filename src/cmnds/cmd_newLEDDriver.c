@@ -366,39 +366,7 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
     return 1;
   }
 
-  /* Loop over all keys of the root object */
-  for (i = 1; i < r; i++) {
-    if (jsoneq(args, &t[i], "user") == 0) {
-      /* We may use strndup() to fetch string value */
-      ADDLOG_INFO(LOG_FEATURE_CMD, "- User: %.*s\n", t[i + 1].end - t[i + 1].start,
-             args + t[i + 1].start);
-      i++;
-    } else if (jsoneq(args, &t[i], "admin") == 0) {
-      /* We may additionally check if the value is either "true" or "false" */
-      ADDLOG_INFO(LOG_FEATURE_CMD, "- Admin: %.*s\n", t[i + 1].end - t[i + 1].start,
-             args + t[i + 1].start);
-      i++;
-    } else if (jsoneq(args, &t[i], "uid") == 0) {
-      /* We may want to do strtol() here to get numeric value */
-      ADDLOG_INFO(LOG_FEATURE_CMD, "- UID: %.*s\n", t[i + 1].end - t[i + 1].start,
-             args + t[i + 1].start);
-      i++;
-    } else if (jsoneq(args, &t[i], "groups") == 0) {
-      int j;
-      ADDLOG_INFO(LOG_FEATURE_CMD, "- Groups:\n");
-      if (t[i + 1].type != JSMN_ARRAY) {
-        continue; /* We expect groups to be an array of strings */
-      }
-      for (j = 0; j < t[i + 1].size; j++) {
-        jsmntok_t *g = &t[i + j + 2];
-        ADDLOG_INFO(LOG_FEATURE_CMD, "  * %.*s\n", g->end - g->start, args + g->start);
-      }
-      i += t[i + 1].size + 1;
-    } else {
-      ADDLOG_INFO(LOG_FEATURE_CMD, "Unexpected key: %.*s\n", t[i].end - t[i].start,
-             args + t[i].start);
-    }
-  }
+	return 0;
 }
 int LED_IsRunningDriver() {
 	if(PIN_CountPinsWithRoleOrRole(IOR_PWM,IOR_PWM_n))
