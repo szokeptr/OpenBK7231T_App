@@ -621,6 +621,7 @@ static void timer_handler( beken_thread_arg_t arg )
 	int previous = config->from;
 	for( ;; )
 	{	
+			vTaskDelayUntil( &xLastWakeTime, xFrequency );
 			int stepVal = ((float)i / frames) * delta;
 			int next = config->from + stepVal;
 			if (previous != next) {
@@ -628,8 +629,6 @@ static void timer_handler( beken_thread_arg_t arg )
 			}
 			previous = next;
 			i++;
-
-			vTaskDelayUntil( &xLastWakeTime, xFrequency );
 
 			if (i > frames) {
 				break;
