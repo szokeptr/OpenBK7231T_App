@@ -353,6 +353,26 @@ int Main_GetLastRebootBootFailures() {
 	return g_bootFailures;
 }
 
+beken_timer_t led_timer;
+static void timer_handler(void *data)
+{
+	ADDLOGF_INFO("Timer fired");
+}
+
+void myInit()
+{
+    OSStatus err;
+
+    err = rtos_init_timer(&led_timer,
+                          1 * 1000,
+                          timer_handler,
+                          (void *)0);
+    ASSERT(kNoErr == err);
+
+    err = rtos_start_timer(&led_timer);
+    ASSERT(kNoErr == err);
+}
+
 #define RESTARTS_REQUIRED_FOR_SAFE_MODE 4
 
 void Main_Init()
@@ -472,6 +492,8 @@ void Main_Init()
 		PIN_StartButtonScanThread();
 
 		NewLED_RestoreSavedStateIfNeeded();
+
+		myInit();
 	}
 
 }
