@@ -662,8 +662,8 @@ void myInit(int ch, int from, int to, int iFlags)
 }
 
 void CHANNEL_Pulse(int ch, int iVal, int iFlags) {
-	myInit(ch, 0, 100);
-	myInit(ch, 100, 0);
+	myInit(ch, 0, 100, iFlags);
+	myInit(ch, 100, 0, iFlags);
 }
 
 void CHANNEL_Set(int ch, int iVal, int iFlags) {
