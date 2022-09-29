@@ -1,5 +1,7 @@
 {
   "files.associations": {
-    "timers.h": "c"
+    "timers.h": "c",
+    "random": "c",
+    "jsmn.h": "c"
   }
 }

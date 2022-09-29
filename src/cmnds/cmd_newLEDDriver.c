@@ -391,28 +391,14 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
 
     /* Loop over all keys of the root object */
     for (i = 1; i < r; i++) {
-        int chanval;
-				if (jsoneq(json_str, &t[i], "state") == 0) {
-					
-					params.state = strndup(json_str + (int)&t[i + 1].start, &t[i + 1].size);
-					i++;
-				}
-
-				if (jsoneq(json_str, &t[i], "brightness") == 0) {
-					
-					params.brightness = atoi(strndup(json_str + (int)&t[i + 1].start, &t[i + 1].size));
-					i++;
-				}
-
-				if (jsoneq(json_str, &t[i], "transition") == 0) {
-					
-					params.transition = atoi(strndup(json_str + (int)&t[i + 1].start, &t[i + 1].size));
-					i++;
-				}
-        // chanval = atoi(json_str + g->start);
-        // CHANNEL_Set(i-1, chanval, 0);
-        ADDLOG_DEBUG(LOG_FEATURE_API, "Set of chan %s, %f, %f", params.state, params.brightness, params.transition);
+			if (jsoneq(json_str, &t[i], "state")) {
+				ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", r);
+				params.state = json_get_str(json_str, &t[i + 1]);
+				i++;
+			}
     }
+
+		ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) Parsed: state=%s;",cmd,params.state);
 
     os_free(p);
     os_free(t);
