@@ -605,26 +605,21 @@ static void timer_handler( beken_thread_arg_t arg )
 
 	int delta = config->to - config->from;
 
-	// Perform an action every 10 ticks.
-	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = 5;
-
-	// Initialise the xLastWakeTime variable with the current time.
-	xLastWakeTime = xTaskGetTickCount ();
-	// use portTICK_PERIOD_MS for actual timing
+	const int durationMs = 1000;
+	const int frames = 120; 
+	
 	int i = 0;
 	for( ;; )
 	{
-			// Wait for the next cycle.
-			vTaskDelayUntil( &xLastWakeTime, xFrequency );
-
-			int stepVal = ((float)i / 120) * delta;
+			int stepVal = ((float)i / frames) * delta;
 			Channel_OnChangedTransitionStep(config->ch, config->from + stepVal);
 			i++;
 
-			if (i > 120) {
+			if (i > frames) {
 				break;
 			}
+
+			vTaskDelay( (durationMs / frames) / portTICK_PERIOD_MS );
 	}
 
 	g_channelValues[config->ch] = config->to;
