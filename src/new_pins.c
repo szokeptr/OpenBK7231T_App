@@ -568,7 +568,7 @@ static void Channel_OnChangedTransitionStep(int ch, int nextValue) {
   int i;
   int iVal;
   int bOn;
-
+	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Transition step called %i, %i, %i", ch, nextValue, xTaskGetTickCount());
 
   //bOn = BIT_CHECK(g_channelStates,ch);
   iVal = nextValue;
