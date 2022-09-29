@@ -356,7 +356,8 @@ int Main_GetLastRebootBootFailures() {
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
-	ADDLOGF_INFO("Thread callback called");
+	int config = (int*) arg;
+	ADDLOGF_INFO("Thread callback called %i", config);
 
 	rtos_delete_thread( NULL );
 }
@@ -369,7 +370,7 @@ void myInit()
 									"Test Thread",
 									(beken_thread_function_t)timer_handler,
 									0x800,
-									(beken_thread_arg_t)0 );
+									(beken_thread_arg_t)420 );
     if(err != kNoErr)
     {
 		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
