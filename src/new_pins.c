@@ -578,9 +578,12 @@ void myInit(int ch, int from, int to)
 {
 
 		channelTransitionConfig_t *config = pvPortMalloc( sizeof ( channelTransitionConfig_t ) );
-		config->ch = ch;
-		config->from = from;
-		config->to = to;
+		config->ch = (int *)pvPortMalloc( sizeof ( int ) );
+		*( config->ch ) = ch;
+		config->from = (int *)pvPortMalloc( sizeof ( int ) );
+		*( config->from ) = ch;
+		config->to = (int *)pvPortMalloc( sizeof ( int ) );
+		*( config->to ) = ch;
 
     OSStatus err = kNoErr;
 
@@ -588,7 +591,7 @@ void myInit(int ch, int from, int to)
 									"Test Thread",
 									(beken_thread_function_t)timer_handler,
 									0x800,
-									(beken_thread_arg_t)&config );
+									(beken_thread_arg_t)config );
     if(err != kNoErr)
     {
 		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
