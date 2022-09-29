@@ -602,8 +602,8 @@ float BezierBlend(float t)
     return t * t * (3.0f - 2.0f * t);
 }
 
-const float durationMs = 600.0f;
-const float frames = 60.0f; 
+const float durationMs = 5000.0f;
+const float frames = 1000.0f; 
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
@@ -614,15 +614,34 @@ static void timer_handler( beken_thread_arg_t arg )
 	int from = config->from;
 	int i = 0;
 	int previous = config->from;
+	int j;
 
+	int pwmChannel = NULL;
+
+  for(j = 0; j < PLATFORM_GPIO_MAX; j++) {
+    if(g_cfg.pins.channels[j] == config->ch) {
+      if (g_cfg.pins.roles[j] != IOR_PWM) {
+				break;
+			}
+
+			pwmChannel = j;
+    }
+  }
+
+	if (!pwmChannel) {
+		rtos_delete_thread( NULL );
+		return;
+	}
+	
 	for( ;; )
 	{	
 			vTaskDelay( durationMs / frames / portTICK_PERIOD_MS );
-			int stepVal = BezierBlend((float)i / frames) * delta;
+			int stepVal = ((float)i / frames) * delta;
 			int next = from + stepVal;
 			if (previous != next) {
+				HAL_PIN_PWM_Update(pwmChannel,next);
 				g_channelValues[config->ch] = next;
-				Channel_OnChangedTransitionStep(config->ch, next);
+				// Channel_OnChangedTransitionStep(config->ch, next);
 			}
 			previous = next;
 			i++;
@@ -634,7 +653,9 @@ static void timer_handler( beken_thread_arg_t arg )
 
 	g_channelValues[config->ch] = config->to;
 
-  Channel_OnChanged(config->ch, config->from, config->iFlags);
+	Channel_OnChanged(config->ch, config->from, config->iFlags);
+
+	vPortFree(config);
 
 	rtos_delete_thread( NULL );
 	
@@ -661,11 +682,6 @@ void myInit(int ch, int from, int to, int iFlags)
 		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
     }
     ASSERT(kNoErr == err);
-}
-
-void CHANNEL_Pulse(int ch, int iVal, int iFlags) {
-	myInit(ch, 0, 100, iFlags);
-	// myInit(åch, 100, 0, iFlags);
 }
 
 void CHANNEL_Set(int ch, int iVal, int iFlags) {
@@ -708,9 +724,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	}
 
 	myInit(ch, prevValue, iVal, iFlags);
-	// g_channelValues[ch] = iVal;
-
-	// Channel_OnChanged(ch, prevValue, iFlags);
+	
 }
 void CHANNEL_AddClamped(int ch, int iVal, int min, int max) {
 	int prevValue;
