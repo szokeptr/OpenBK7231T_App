@@ -392,22 +392,21 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
     /* Loop over all keys of the root object */
     for (i = 1; i < r; i++) {
         int chanval;
-				jsmntok_t *g = &t[i];
-				if (jsoneq(json_str, g, "state") == 0) {
+				if (jsoneq(json_str, &t[i], "state") == 0) {
 					
-					params.state = strndup(json_str + g->start, g->size);
+					params.state = strndup(json_str + (int)&t[i + 1].start, &t[i + 1].size);
 					i++;
 				}
 
 				if (jsoneq(json_str, &t[i], "brightness") == 0) {
 					
-					params.brightness = atoi(json_str + g->start);
+					params.brightness = atoi(strndup(json_str + (int)&t[i + 1].start, &t[i + 1].size));
 					i++;
 				}
 
 				if (jsoneq(json_str, &t[i], "transition") == 0) {
 					
-					params.transition = atoi(json_str + g->start);
+					params.transition = atoi(strndup(json_str + (int)&t[i + 1].start, &t[i + 1].size));
 					i++;
 				}
         // chanval = atoi(json_str + g->start);
