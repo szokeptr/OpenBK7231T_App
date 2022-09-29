@@ -614,33 +614,15 @@ static void timer_handler( beken_thread_arg_t arg )
 	int from = config->from;
 	int i = 0;
 	int previous = config->from;
-	int j;
 
-	int pwmChannel = NULL;
-
-  for(j = 0; j < PLATFORM_GPIO_MAX; j++) {
-    if(g_cfg.pins.channels[j] == config->ch) {
-      if (g_cfg.pins.roles[j] != IOR_PWM) {
-				break;
-			}
-
-			pwmChannel = j;
-    }
-  }
-
-	if (!pwmChannel) {
-		rtos_delete_thread( NULL );
-		return;
-	}
 	for( ;; )
 	{	
 			vTaskDelay( durationMs / frames / portTICK_PERIOD_MS );
 			int stepVal = ((float)i / frames) * delta;
 			int next = from + stepVal;
 			if (previous != next) {
-				HAL_PIN_PWM_Update(pwmChannel,next);
 				g_channelValues[config->ch] = next;
-				// Channel_OnChangedTransitionStep(config->ch, next);
+				Channel_OnChangedTransitionStep(config->ch, next);
 			}
 			previous = next;
 			i++;
@@ -649,6 +631,10 @@ static void timer_handler( beken_thread_arg_t arg )
 				break;
 			}
 	}
+
+	g_channelValues[config->ch] = config->to;
+
+  Channel_OnChanged(config->ch, config->from, config->iFlags);
 
 	rtos_delete_thread( NULL );
 	
@@ -721,10 +707,10 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 		addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"CHANNEL_Set channel %i has changed to %i (flags %i)\n\r",ch,iVal,iFlags);
 	}
 
-	// myInit(ch, prevValue, iVal, iFlags);
-	g_channelValues[ch] = iVal;
+	myInit(ch, prevValue, iVal, iFlags);
+	// g_channelValues[ch] = iVal;
 
-	Channel_OnChanged(ch, prevValue, iFlags);
+	// Channel_OnChanged(ch, prevValue, iFlags);
 }
 void CHANNEL_AddClamped(int ch, int iVal, int min, int max) {
 	int prevValue;
