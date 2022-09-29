@@ -602,8 +602,8 @@ float BezierBlend(float t)
     return t * t * (3.0f - 2.0f * t);
 }
 
-const int durationMs = 1000.0f;
-const int frames = 60.0f; 
+const float durationMs = 1000.0f;
+const float frames = 60.0f; 
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
