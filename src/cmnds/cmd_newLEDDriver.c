@@ -372,8 +372,8 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
     }
 
     /* Assume the top-level element is an object */
-    if (r < 1 || t[0].type != JSMN_ARRAY) {
-        ADDLOG_ERROR(LOG_FEATURE_API, "Array expected", r);
+    if (r < 1 || t[0].type != JSMN_OBJECT) {
+        ADDLOG_ERROR(LOG_FEATURE_API, "Object expected", r);
         sprintf(tmp,"Object expected\n");
         os_free(p);
         os_free(t);
