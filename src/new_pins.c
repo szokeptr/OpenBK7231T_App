@@ -674,6 +674,7 @@ void myInit(int ch, int from, int to, int iFlags)
 		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
     }
     ASSERT(kNoErr == err);
+		g_channelValues[ch] = to;
 }
 
 void CHANNEL_Pulse(int ch, int iVal, int iFlags) {
