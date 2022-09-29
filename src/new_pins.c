@@ -616,16 +616,22 @@ static void timer_handler( beken_thread_arg_t arg )
 	int previous = config->from;
 	int j;
 
-	int pwmChannel;
+	int pwmChannel = NULL;
 
   for(j = 0; j < PLATFORM_GPIO_MAX; j++) {
     if(g_cfg.pins.channels[i] == config->ch) {
-			pwmChannel = j;
       if (g_cfg.pins.roles[i] != IOR_PWM) {
-				return;
+				break;
 			}
+
+			pwmChannel = j;
     }
   }
+
+	if (pwmChannel == NULL) {
+		rtos_delete_thread( NULL );
+		return;
+	}
 	for( ;; )
 	{	
 			vTaskDelay( durationMs / frames / portTICK_PERIOD_MS );
