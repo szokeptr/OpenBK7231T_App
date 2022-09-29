@@ -628,7 +628,7 @@ static void timer_handler( beken_thread_arg_t arg )
     }
   }
 
-	if (pwmChannel == NULL) {
+	if (!pwmChannel) {
 		rtos_delete_thread( NULL );
 		return;
 	}
