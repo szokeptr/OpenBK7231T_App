@@ -404,9 +404,15 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
 					params.brightness = atoi(json_str + g->start);
 					i++;
 				}
+
+				if (jsoneq(json_str, &t[i], "transition") == 0) {
+					
+					params.transition = atoi(json_str + g->start);
+					i++;
+				}
         // chanval = atoi(json_str + g->start);
         // CHANNEL_Set(i-1, chanval, 0);
-        ADDLOG_DEBUG(LOG_FEATURE_API, "Set of chan %s, %f", params.state, params.brightness);
+        ADDLOG_DEBUG(LOG_FEATURE_API, "Set of chan %s, %f, %f", params.state, params.brightness, params.transition);
     }
 
     os_free(p);
