@@ -641,7 +641,7 @@ void scheduleTransition(int ch, int fromValue, int toValue)
 	rtos_create_thread(
 		&thread,
 		1,
-		(void *)'transition',
+		"transition",
 		(beken_thread_function_t) TransitionChannelValue,
 		0x400,
 		params
