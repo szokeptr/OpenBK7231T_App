@@ -346,10 +346,19 @@ static int enableAll(const void *context, const char *cmd, const char *args, int
 	//}
 	//return 0;
 }
+typedef struct commandJsonParams_s {
+	char state;
+	int brightness;
+	int r;
+	int g;
+	int b;
+	int transition;
+} commandJsonParams_t;
 static int commandJson(const void *context, const char *cmd, const char *args, int cmdFlags) {
 	ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) received with args %s",cmd,args);
 	int i;
 	int r;
+	commandJsonParams_t params;
 	char tmp[64];
 	jsmn_parser *p = os_malloc(sizeof(jsmn_parser));
     //jsmntok_t t[128]; /* We expect no more than 128 tokens */
@@ -383,11 +392,21 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
     /* Loop over all keys of the root object */
     for (i = 1; i < r; i++) {
         int chanval;
-        jsmntok_t *g = &t[i];
+				jsmntok_t *g = &t[i];
+				if (jsoneq(json_str, g, "state") == 0) {
+					
+					params.state = strndup(json_str + g->start, g->size);
+					i++;
+				}
+
+				if (jsoneq(json_str, &t[i], "brightness") == 0) {
+					
+					params.brightness = atoi(json_str + g->start);
+					i++;
+				}
         // chanval = atoi(json_str + g->start);
         // CHANNEL_Set(i-1, chanval, 0);
-        ADDLOG_DEBUG(LOG_FEATURE_API, "Set of chan %s", i,
-                g);
+        ADDLOG_DEBUG(LOG_FEATURE_API, "Set of chan %s, %f", params.state, params.brightness);
     }
 
     os_free(p);
