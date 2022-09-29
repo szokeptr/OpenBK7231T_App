@@ -2,6 +2,8 @@
   "files.associations": {
     "timers.h": "c",
     "random": "c",
-    "jsmn.h": "c"
+    "jsmn.h": "c",
+    "jsmn_h.h": "c",
+    "string.h": "c"
   }
 }

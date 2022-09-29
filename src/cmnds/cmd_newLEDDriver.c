@@ -398,7 +398,7 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
 			}
     }
 
-		ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) Parsed: state=%s;",cmd,params.state);
+		ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) Parsed: state=%s;",cmd,&params.state);
 
     os_free(p);
     os_free(t);
