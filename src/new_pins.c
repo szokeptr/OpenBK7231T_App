@@ -619,8 +619,8 @@ static void timer_handler( beken_thread_arg_t arg )
 	int pwmChannel = NULL;
 
   for(j = 0; j < PLATFORM_GPIO_MAX; j++) {
-    if(g_cfg.pins.channels[i] == config->ch) {
-      if (g_cfg.pins.roles[i] != IOR_PWM) {
+    if(g_cfg.pins.channels[j] == config->ch) {
+      if (g_cfg.pins.roles[j] != IOR_PWM) {
 				break;
 			}
 
