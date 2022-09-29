@@ -639,6 +639,7 @@ static void timer_handler( beken_thread_arg_t arg )
 			int next = from + stepVal;
 			if (previous != next) {
 				HAL_PIN_PWM_Update(pwmChannel,next);
+				g_channelValues[config->ch] = next;
 				// Channel_OnChangedTransitionStep(config->ch, next);
 			}
 			previous = next;
@@ -674,7 +675,6 @@ void myInit(int ch, int from, int to, int iFlags)
 		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
     }
     ASSERT(kNoErr == err);
-		g_channelValues[ch] = to;
 }
 
 void CHANNEL_Pulse(int ch, int iVal, int iFlags) {
