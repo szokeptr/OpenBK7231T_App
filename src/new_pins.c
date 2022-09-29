@@ -639,10 +639,10 @@ void myInit(int ch, int from, int to, int iFlags)
 
     OSStatus err = kNoErr;
 
-    err = rtos_create_thread( &test_thread, BEKEN_NO_WAIT,
+    err = rtos_create_thread( &test_thread, 100,
 									"Test Thread",
 									(beken_thread_function_t)timer_handler,
-									0x100,
+									0x800,
 									(beken_thread_arg_t)config );
     if(err != kNoErr)
     {
