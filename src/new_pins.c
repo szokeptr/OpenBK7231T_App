@@ -607,7 +607,7 @@ static void timer_handler( beken_thread_arg_t arg )
 
 	const int durationMs = 1000;
 	const int frames = 120; 
-	
+
 	int i = 0;
 	for( ;; )
 	{
@@ -641,7 +641,7 @@ void myInit(int ch, int from, int to, int iFlags)
 
     OSStatus err = kNoErr;
 
-    err = rtos_create_thread( &test_thread, 6,
+    err = rtos_create_thread( &test_thread, 5,
 									"Test Thread",
 									(beken_thread_function_t)timer_handler,
 									0x800,
