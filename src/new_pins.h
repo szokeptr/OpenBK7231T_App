@@ -164,9 +164,9 @@ typedef struct mainConfig_s {
 } mainConfig_t;
 
 typedef struct channelTransitionConfig_s {
-	int *ch;
-	int *from;
-	int *to;
+	int ch;
+	int from;
+	int to;
 } channelTransitionConfig_t;
 
 extern mainConfig_t g_cfg;
