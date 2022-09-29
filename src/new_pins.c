@@ -619,7 +619,7 @@ static void timer_handler( beken_thread_arg_t arg )
 			vTaskDelayUntil( &xLastWakeTime, xFrequency );
 
 			int stepVal = ((float)i / 120) * delta;
-			Channel_OnChangedTransitionStep(config->ch, config->fromValue + stepVal);
+			Channel_OnChangedTransitionStep(config->ch, config->from + stepVal);
 			i++;
 
 			if (i > 120) {
