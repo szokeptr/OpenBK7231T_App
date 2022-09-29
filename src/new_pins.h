@@ -163,6 +163,12 @@ typedef struct mainConfig_s {
 	char initCommandLine[512];
 } mainConfig_t;
 
+typedef struct channelTransitionConfig_s {
+	int ch;
+	int from;
+	int to;
+} channelTransitionConfig_t;
+
 extern mainConfig_t g_cfg;
 
 extern char g_enable_pins;

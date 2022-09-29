@@ -567,21 +567,28 @@ int CHANNEL_Get(int ch) {
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
-	int config = (int*) arg;
-	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called, %i", config);
+	channelTransitionConfig_t config = *(channelTransitionConfig_t*) arg;
+	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called: ch=%i; from=%i; to=%i", config.ch, config.from, config.to);
 
 	rtos_delete_thread( NULL );
+	
 }
 
-void myInit(int ch)
+void myInit(int ch, int from, int to)
 {
+
+		channelTransitionConfig_t *config = pvPortMalloc( sizeof ( channelTransitionConfig_t ) );
+		config->ch = ch;
+		config->from = from;
+		config->to = to;
+
     OSStatus err = kNoErr;
 
     err = rtos_create_thread( &test_thread, 6,
 									"Test Thread",
 									(beken_thread_function_t)timer_handler,
 									0x800,
-									(beken_thread_arg_t)ch );
+									(beken_thread_arg_t)&config );
     if(err != kNoErr)
     {
 		ADDLOG_ERROR(LOG_FEATURE_CMD, "create \"Test Thread\" thread failed with %i!\r\n",err);
