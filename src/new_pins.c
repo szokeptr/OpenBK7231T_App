@@ -603,7 +603,7 @@ float BezierBlend(float t)
 }
 
 const float durationMs = 1000.0f;
-const float frames = 60.0f; 
+const float frames = 1000.0f; 
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
@@ -621,7 +621,7 @@ static void timer_handler( beken_thread_arg_t arg )
 	int previous = config->from;
 	for( ;; )
 	{	
-			int stepVal = BezierBlend((float)i / frames) * delta;
+			int stepVal = ((float)i / frames) * delta;
 			int next = config->from + stepVal;
 			if (previous != next) {
 				Channel_OnChangedTransitionStep(config->ch, next);
