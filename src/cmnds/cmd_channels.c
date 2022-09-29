@@ -7,6 +7,26 @@
 #include <ctype.h>
 #include "cmd_local.h"
 
+static int CMD_PulseChannel(const void *context, const char *cmd, const char *args, int cmdFlags){
+	int ch, val;
+
+	if(args==0||*args==0) {
+		ADDLOG_INFO(LOG_FEATURE_CMD, "CMD_SetChannel: command requires argument");
+		return 1;
+	}
+	Tokenizer_TokenizeString(args);
+	if(Tokenizer_GetArgsCount() < 1) {
+		ADDLOG_INFO(LOG_FEATURE_CMD, "CMD_SetChannel: command requires 1 argument");
+		return 1;
+	}
+
+	ch = Tokenizer_GetArgInteger(0);
+
+	CHANNEL_Pulse(ch,val, false);
+
+	return 1;
+}
+
 static int CMD_SetChannel(const void *context, const char *cmd, const char *args, int cmdFlags){
 	int ch, val;
 
@@ -178,6 +198,7 @@ static int CMD_ShortName(const void *context, const char *cmd, const char *args,
 	return 1;
 }
 void CMD_InitChannelCommands(){
+		CMD_RegisterCommand("PulseChannel", "", CMD_PulseChannel, "qqqqq0", NULL);
     CMD_RegisterCommand("SetChannel", "", CMD_SetChannel, "qqqqq0", NULL);
     CMD_RegisterCommand("AddChannel", "", CMD_AddChannel, "qqqqq0", NULL);
     CMD_RegisterCommand("ClampChannel", "", CMD_ClampChannel, "qqqqq0", NULL);

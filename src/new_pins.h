@@ -197,6 +197,7 @@ void CHANNEL_Toggle(int ch);
 void CHANNEL_DoSpecialToggleAll();
 bool CHANNEL_Check(int ch);
 void PIN_SetGenericDoubleClickCallback(void (*cb)(int pinIndex));
+void CHANNEL_Pulse(int ch, int iVal, int iFlags);
 // CHANNEL_SET_FLAG_*
 void CHANNEL_Set(int ch, int iVal, int iFlags);
 void CHANNEL_Add(int ch, int iVal);

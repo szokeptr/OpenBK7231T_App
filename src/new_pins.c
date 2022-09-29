@@ -661,6 +661,11 @@ void myInit(int ch, int from, int to, int iFlags)
     ASSERT(kNoErr == err);
 }
 
+void CHANNEL_Pulse(int ch, int iVal, int iFlags) {
+	myInit(ch, 0, 100);
+	myInit(ch, 100, 0);
+}
+
 void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	int prevValue;
 	int bForce;
@@ -700,7 +705,10 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 		addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"CHANNEL_Set channel %i has changed to %i (flags %i)\n\r",ch,iVal,iFlags);
 	}
 
-	myInit(ch, prevValue, iVal, iFlags);
+	// myInit(ch, prevValue, iVal, iFlags);
+	g_channelValues[ch] = iVal;
+
+	Channel_OnChanged(ch, prevValue, iFlags);
 }
 void CHANNEL_AddClamped(int ch, int iVal, int min, int max) {
 	int prevValue;
