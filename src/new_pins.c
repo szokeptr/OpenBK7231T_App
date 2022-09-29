@@ -597,56 +597,56 @@ int CHANNEL_Get(int ch) {
 	return g_channelValues[ch];
 }
 
-static void TransitionChannelValue(void *data)
-{
-	channel_transition_params_t config = *(channel_transition_params_t *) data;
+// static void TransitionChannelValue(void *data)
+// {
+// 	channel_transition_params_t config = *(channel_transition_params_t *) data;
 
-	int stepVal;
-	int delta = config.toValue - config.toValue;
+// 	int stepVal;
+// 	int delta = config.toValue - config.toValue;
 
-	// Perform an action every 10 ticks.
-	TickType_t xLastWakeTime;
-	const TickType_t xFrequency = 5;
+// 	// Perform an action every 10 ticks.
+// 	TickType_t xLastWakeTime;
+// 	const TickType_t xFrequency = 5;
 
-	// Initialise the xLastWakeTime variable with the current time.
-	xLastWakeTime = xTaskGetTickCount ();
-	// use portTICK_PERIOD_MS for actual timing
-	int i = 0;
-	for( ;; )
-	{
-			// Wait for the next cycle.
-			vTaskDelayUntil( &xLastWakeTime, xFrequency );
+// 	// Initialise the xLastWakeTime variable with the current time.
+// 	xLastWakeTime = xTaskGetTickCount ();
+// 	// use portTICK_PERIOD_MS for actual timing
+// 	int i = 0;
+// 	for( ;; )
+// 	{
+// 			// Wait for the next cycle.
+// 			vTaskDelayUntil( &xLastWakeTime, xFrequency );
 
-			// Perform action here. xWasDelayed value can be used to determine
-			// whether a deadline was missed if the code here took too long.
-			stepVal = ((float)i / 120) * delta;
-			Channel_OnChangedTransitionStep(config.ch, config.fromValue + stepVal);
-			i++;
+// 			// Perform action here. xWasDelayed value can be used to determine
+// 			// whether a deadline was missed if the code here took too long.
+// 			stepVal = ((float)i / 120) * delta;
+// 			Channel_OnChangedTransitionStep(config.ch, config.fromValue + stepVal);
+// 			i++;
 
-			if (i > 120) {
-				break;
-			}
-	}
-}
+// 			if (i > 120) {
+// 				break;
+// 			}
+// 	}
+// }
 
-void scheduleTransition(int ch, int fromValue, int toValue)
-{
-	static beken_thread_t thread;
-	channel_transition_params_t *params = pvPortMalloc( sizeof ( channel_transition_params_t ) );
+// void scheduleTransition(int ch, int fromValue, int toValue)
+// {
+// 	static beken_thread_t thread;
+// 	channel_transition_params_t *params = pvPortMalloc( sizeof ( channel_transition_params_t ) );
 
-	params->ch = ch;
-	params->fromValue = fromValue;
-	params->toValue = toValue;
+// 	params->ch = ch;
+// 	params->fromValue = fromValue;
+// 	params->toValue = toValue;
 
-	rtos_create_thread(
-		&thread,
-		1,
-		"transition",
-		(beken_thread_function_t) TransitionChannelValue,
-		0x400,
-		params
-	);
-}
+// 	rtos_create_thread(
+// 		&thread,
+// 		1,
+// 		"transition",
+// 		(beken_thread_function_t) TransitionChannelValue,
+// 		0x400,
+// 		params
+// 	);
+// }
 
 
 
@@ -691,7 +691,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 	
 	// call following in some nice loop
 	// that transitions on a set curve
-	scheduleTransition(ch, prevValue, iVal);
+	// scheduleTransition(ch, prevValue, iVal);
 	g_channelValues[ch] = iVal;
 
 	Channel_OnChanged(ch,prevValue,iFlags);
