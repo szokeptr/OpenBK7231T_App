@@ -597,12 +597,7 @@ int CHANNEL_Get(int ch) {
 	return g_channelValues[ch];
 }
 
-float BezierBlend(float t)
-{
-    return t * t * (3.0f - 2.0f * t);
-}
-
-void TransitionChannelValue(void *data)
+static void TransitionChannelValue(void *data)
 {
 	channel_transition_params_t config = *(channel_transition_params_t *) data;
 
@@ -646,9 +641,9 @@ void scheduleTransition(int ch, int fromValue, int toValue)
 	rtos_create_thread(
 		&thread,
 		1,
-		'transition',
+		(void *)'transition',
 		(beken_thread_function_t) TransitionChannelValue,
-		1024,
+		0x400,
 		params
 	);
 }
