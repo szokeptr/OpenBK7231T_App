@@ -564,11 +564,68 @@ int CHANNEL_Get(int ch) {
 	return g_channelValues[ch];
 }
 
+static void Channel_OnChangedTransitionStep(int ch, int nextValue) {
+  int i;
+  int iVal;
+  int bOn;
+
+
+  //bOn = BIT_CHECK(g_channelStates,ch);
+  iVal = nextValue;
+  bOn = iVal > 0;
+
+  for(i = 0; i < PLATFORM_GPIO_MAX; i++) {
+    if(g_cfg.pins.channels[i] == ch) {
+      if(g_cfg.pins.roles[i] == IOR_Relay || g_cfg.pins.roles[i] == IOR_LED) {
+        RAW_SetPinValue(i,bOn);
+      }
+      else if(g_cfg.pins.roles[i] == IOR_Relay_n || g_cfg.pins.roles[i] == IOR_LED_n) {
+        RAW_SetPinValue(i,!bOn);
+      }
+      else if(g_cfg.pins.roles[i] == IOR_DigitalInput || g_cfg.pins.roles[i] == IOR_DigitalInput_n
+        || g_cfg.pins.roles[i] == IOR_DigitalInput_NoPup || g_cfg.pins.roles[i] == IOR_DigitalInput_NoPup_n) {
+      }
+      else if(g_cfg.pins.roles[i] == IOR_ToggleChannelOnToggle) {
+      }
+      else if(g_cfg.pins.roles[i] == IOR_PWM) {
+        HAL_PIN_PWM_Update(i,iVal);
+      }
+      else if(g_cfg.pins.roles[i] == IOR_PWM_n) {
+        HAL_PIN_PWM_Update(i,100-iVal);
+      }
+    }
+  }
+}
+
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
 	channelTransitionConfig_t *config = (channelTransitionConfig_t*) arg;
 	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called: ch=%i; from=%i; to=%i", config->ch, config->from, config->to);
+
+	int delta = config->to - config->from;
+
+	// Perform an action every 10 ticks.
+	TickType_t xLastWakeTime;
+	const TickType_t xFrequency = 5;
+
+	// Initialise the xLastWakeTime variable with the current time.
+	xLastWakeTime = xTaskGetTickCount ();
+	// use portTICK_PERIOD_MS for actual timing
+	int i = 0;
+	for( ;; )
+	{
+			// Wait for the next cycle.
+			vTaskDelayUntil( &xLastWakeTime, xFrequency );
+
+			int stepVal = ((float)i / 120) * delta;
+			Channel_OnChangedTransitionStep(config->ch, config->fromValue + stepVal);
+			i++;
+
+			if (i > 120) {
+				break;
+			}
+	}
 
 	rtos_delete_thread( NULL );
 	
