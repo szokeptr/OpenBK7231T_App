@@ -167,6 +167,7 @@ typedef struct channelTransitionConfig_s {
 	int ch;
 	int from;
 	int to;
+	int iFlags;
 } channelTransitionConfig_t;
 
 extern mainConfig_t g_cfg;

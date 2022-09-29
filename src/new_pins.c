@@ -627,21 +627,22 @@ static void timer_handler( beken_thread_arg_t arg )
 			}
 	}
 
-	g_channelValues[ch] = iVal;
+	g_channelValues[config->ch] = config->to;
 
-	Channel_OnChanged(ch,prevValue,iFlags);
+	Channel_OnChanged(config->ch, config->from, config->iFlags);
 
 	rtos_delete_thread( NULL );
 	
 }
 
-void myInit(int ch, int from, int to)
+void myInit(int ch, int from, int to, int iFlags)
 {
 
 		channelTransitionConfig_t *config = pvPortMalloc( sizeof ( channelTransitionConfig_t ) );
 		config->ch = ch;
 		config->from = from;
 		config->to = to;
+		config->iFlags = iFlags;
 
     OSStatus err = kNoErr;
 
@@ -696,7 +697,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 		addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"CHANNEL_Set channel %i has changed to %i (flags %i)\n\r",ch,iVal,iFlags);
 	}
 
-	myInit(ch, prevValue, iVal);
+	myInit(ch, prevValue, iVal, iFlags);
 }
 void CHANNEL_AddClamped(int ch, int iVal, int min, int max) {
 	int prevValue;
