@@ -5,4 +5,4 @@
 
 int jsoneq(const char *json, jsmntok_t *tok, const char *s);
 
-int json_get_str(const char *json, jsmntok_t *tok);
+char *json_get_str(const char *json, jsmntok_t *tok);

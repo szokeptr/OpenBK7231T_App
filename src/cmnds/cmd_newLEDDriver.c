@@ -354,56 +354,55 @@ typedef struct commandJsonParams_s {
 	int b;
 	int transition;
 } commandJsonParams_t;
+
 static int commandJson(const void *context, const char *cmd, const char *args, int cmdFlags) {
 	ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) received with args %s",cmd,args);
 	int i;
 	int r;
 	commandJsonParams_t params;
-	char tmp[64];
-	jsmn_parser *p = os_malloc(sizeof(jsmn_parser));
-    //jsmntok_t t[128]; /* We expect no more than 128 tokens */
+	
+	jsmn_parser *p = pvPortMalloc(sizeof(jsmn_parser));
 #define TOKEN_COUNT 128
-    jsmntok_t *t = os_malloc(sizeof(jsmntok_t)*TOKEN_COUNT);
-    char *json_str = args;
-    int json_len = strlen(json_str);
+	jsmntok_t *tokens = pvPortMalloc(sizeof(jsmntok_t)*TOKEN_COUNT);
+
+	char *json_str = args;
+	int json_len = strlen(json_str);
 
 	memset(p, 0, sizeof(jsmn_parser));
-	memset(t, 0, sizeof(jsmntok_t)*128);
+	memset(tokens, 0, sizeof(jsmntok_t)*TOKEN_COUNT);
 
-    jsmn_init(p);
-    r = jsmn_parse(p, json_str, json_len, t, TOKEN_COUNT);
-    if (r < 0) {
-        ADDLOG_ERROR(LOG_FEATURE_API, "Failed to parse JSON: %d", r);
-        sprintf(tmp,"Failed to parse JSON: %d\n", r);
-        os_free(p);
-        os_free(t);
-        return 1;
-    }
+	jsmn_init(p);
+	r = jsmn_parse(p, json_str, json_len, tokens, TOKEN_COUNT);
+	if (r < 0) {
+			ADDLOG_ERROR(LOG_FEATURE_API, "Failed to parse JSON: %d", r);
+			vPortFree(p);
+			vPortFree(tokens);
+			return 1;
+	}
 
-    /* Assume the top-level element is an object */
-    if (r < 1 || t[0].type != JSMN_OBJECT) {
-        ADDLOG_ERROR(LOG_FEATURE_API, "Object expected", r);
-        sprintf(tmp,"Object expected\n");
-        os_free(p);
-        os_free(t);
-        return 1;
-    }
+	/* Assume the top-level element is an object */
+	if (r < 1 || tokens[0].type != JSMN_OBJECT) {
+			ADDLOG_ERROR(LOG_FEATURE_API, "Object expected", r);
+			vPortFree(p);
+			vPortFree(tokens);
+			return 1;
+	}
 
-    /* Loop over all keys of the root object */
-    for (i = 1; i < r; i++) {
-			if (jsoneq(json_str, &t[i], "state")) {
-				char *state = json_get_str(json_str, &t[i + 1]);
-				ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", &state);
-				params.state = &state;
-				i++;
-			}
-    }
+	/* Loop over all keys of the root object */
+	for (i = 1; i < r; i++) {
+		if (jsoneq(json_str, &tokens[i], "state")) {
+			char state = json_get_str(json_str, &tokens[i + 1]);
+			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", &state);
+			params.state = &state;
+			i++;
+		}
+	}
 
-		ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) Parsed: state=%s;",cmd,params.state);
+	ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) Parsed: state=%s;",cmd,params.state);
 
-    os_free(p);
-    os_free(t);
-    return 0;
+	vPortFree(p);
+	vPortFree(tokens);
+	return 0;
 }
 int LED_IsRunningDriver() {
 	if(PIN_CountPinsWithRoleOrRole(IOR_PWM,IOR_PWM_n))
