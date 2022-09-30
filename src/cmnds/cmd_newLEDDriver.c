@@ -387,13 +387,22 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
 			vPortFree(tokens);
 			return 1;
 	}
-
+	float transition = 0.0f;
 	/* Loop over all keys of the root object */
 	for (i = 1; i < r; i++) {
+		// Process modifiers first
+		// if (jsoneq(json_str, &tokens[i], "transition")) {
+		// 	char value = json_get_str(json_str, &tokens[i + 1]);
+		// 	transition = value;
+		// 	ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", &state);
+		// 	params.state = &state;
+		// 	i++;
+		// }
+
 		if (jsoneq(json_str, &tokens[i], "state")) {
-			char state = json_get_str(json_str, &tokens[i + 1]);
-			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", &state);
-			params.state = &state;
+			char *state = json_get_str(json_str, &tokens[i + 1]);
+			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", state);
+			params.state = state;
 			i++;
 		}
 	}
