@@ -4,6 +4,7 @@
     "random": "c",
     "jsmn.h": "c",
     "jsmn_h.h": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "valarray": "c"
   }
 }

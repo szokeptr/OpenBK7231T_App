@@ -346,6 +346,13 @@ static int enableAll(const void *context, const char *cmd, const char *args, int
 	//}
 	//return 0;
 }
+char get_json_token_value(const char *json, jsmntok_t *token) {
+	unsigned int length = token->end - token->start;
+	char keyString[length + 1];    
+	memcpy(keyString, json[token->start], length);
+	keyString[length] = '\0';
+	return keyString;
+}
 typedef struct commandJsonParams_s {
 	char state;
 	int brightness;
@@ -400,8 +407,8 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
 		// }
 
 		if (jsoneq(json_str, &tokens[i], "state")) {
-			char state = json_get_str(json_str, &tokens[i + 1]);
-			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s, raw %s", state, json_get_str(json_str, &tokens[i + 1]));
+			char state = get_json_token_value(json_str, &tokens[i + 1]);
+			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s, raw %s", state, get_json_token_value(json_str, &tokens[i + 1]));
 			params.state = state;
 			i++;
 		}
