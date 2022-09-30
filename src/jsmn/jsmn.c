@@ -10,6 +10,8 @@ int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
   return -1;
 }
 
-char *json_get_str(const char *json, jsmntok_t *tok) {
-  return strndup(json + tok->start, tok->size);
+char json_get_str(const char *json, jsmntok_t *tok) {
+  char res;
+  sprintf(res, "%.s", tok->end - tok->start, json + tok->start);
+  return res;
 }
