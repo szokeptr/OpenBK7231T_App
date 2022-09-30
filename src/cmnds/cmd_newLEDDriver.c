@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "cmd_local.h"
 #include "../mqtt/new_mqtt.h"
-#include "../jsmn/jsmn_h.h"
+#include "../cJSON/cJSON.h"
 #ifdef BK_LITTLEFS
 	#include "../littlefs/our_lfs.h"
 #endif
@@ -346,79 +346,42 @@ static int enableAll(const void *context, const char *cmd, const char *args, int
 	//}
 	//return 0;
 }
-char get_json_token_value(const char *json, jsmntok_t *token) {
-	unsigned int length = token->end - token->start;
-	char keyString[length + 1];    
-	memcpy(keyString, json[token->start], length);
-	keyString[length] = '\0';
-	return keyString;
-}
-typedef struct commandJsonParams_s {
-	char state;
-	int brightness;
-	int r;
-	int g;
-	int b;
-	int transition;
-} commandJsonParams_t;
 
 static int commandJson(const void *context, const char *cmd, const char *args, int cmdFlags) {
 	ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) received with args %s",cmd,args);
-	int i;
-	int r;
-	commandJsonParams_t params;
+
+	int status = 0;
+	cJSON *json = cJSON_Parse(args);
+	if (json == NULL)
+	{
+			const char *error_ptr = cJSON_GetErrorPtr();
+			if (error_ptr != NULL)
+			{
+					ADDLOG_ERROR(LOG_FEATURE_CMD, "Error before: %s\n", error_ptr);
+			}
+			status = 0;
+			goto end;
+	}
+
+	const cJSON *state = NULL;
+	const cJSON *transition = NULL;
+
+	state = cJSON_GetObjectItemCaseSensitive(json, "state");
+	if (cJSON_IsString(state) && (state->valuestring != NULL))
+	{
+			ADDLOG_INFO(LOG_FEATURE_CMD, "Should set state %s", state->valuestring);
+	}
+
+	transition = cJSON_GetObjectItemCaseSensitive(json, "transition");
+	if (cJSON_IsNumber(state))
+	{
+			ADDLOG_INFO(LOG_FEATURE_CMD, "Should set transition %d", state->valuedouble);
+	}
+
+	end:
+	cJSON_Delete(json);
+	return status;
 	
-	jsmn_parser *p = pvPortMalloc(sizeof(jsmn_parser));
-#define TOKEN_COUNT 128
-	jsmntok_t *tokens = pvPortMalloc(sizeof(jsmntok_t)*TOKEN_COUNT);
-
-	char *json_str = args;
-	int json_len = strlen(json_str);
-
-	memset(p, 0, sizeof(jsmn_parser));
-	memset(tokens, 0, sizeof(jsmntok_t)*TOKEN_COUNT);
-
-	jsmn_init(p);
-	r = jsmn_parse(p, json_str, json_len, tokens, TOKEN_COUNT);
-	if (r < 0) {
-			ADDLOG_ERROR(LOG_FEATURE_API, "Failed to parse JSON: %d", r);
-			vPortFree(p);
-			vPortFree(tokens);
-			return 1;
-	}
-
-	/* Assume the top-level element is an object */
-	if (r < 1 || tokens[0].type != JSMN_OBJECT) {
-			ADDLOG_ERROR(LOG_FEATURE_API, "Object expected", r);
-			vPortFree(p);
-			vPortFree(tokens);
-			return 1;
-	}
-	float transition = 0.0f;
-	/* Loop over all keys of the root object */
-	for (i = 1; i < r; i++) {
-		// Process modifiers first
-		// if (jsoneq(json_str, &tokens[i], "transition")) {
-		// 	char value = json_get_str(json_str, &tokens[i + 1]);
-		// 	transition = value;
-		// 	ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s", &state);
-		// 	params.state = &state;
-		// 	i++;
-		// }
-
-		if (jsoneq(json_str, &tokens[i], "state")) {
-			char state = get_json_token_value(json_str, &tokens[i + 1]);
-			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s, raw %s, > %s > %s", state, get_json_token_value(json_str, &tokens[i + 1]), &tokens[i], tokens[i]);
-			params.state = state;
-			i++;
-		}
-	}
-
-	ADDLOG_INFO(LOG_FEATURE_CMD, " commandJson (%s) Parsed: state=%s;",cmd,params.state);
-
-	vPortFree(p);
-	vPortFree(tokens);
-	return 0;
 }
 int LED_IsRunningDriver() {
 	if(PIN_CountPinsWithRoleOrRole(IOR_PWM,IOR_PWM_n))

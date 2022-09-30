@@ -5,6 +5,9 @@
     "jsmn.h": "c",
     "jsmn_h.h": "c",
     "string.h": "c",
-    "valarray": "c"
+    "valarray": "c",
+    "cjson.h": "c",
+    "locale": "c",
+    "string": "c"
   }
 }
