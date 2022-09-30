@@ -400,7 +400,7 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
 		// }
 
 		if (jsoneq(json_str, &tokens[i], "state")) {
-			char state = *json_get_str(json_str, &tokens[i + 1]);
+			char state = json_get_str(json_str, &tokens[i + 1]);
 			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s, raw %s", state, json_get_str(json_str, &tokens[i + 1]));
 			params.state = state;
 			i++;
