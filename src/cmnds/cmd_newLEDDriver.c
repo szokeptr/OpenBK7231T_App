@@ -408,7 +408,7 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
 
 		if (jsoneq(json_str, &tokens[i], "state")) {
 			char state = get_json_token_value(json_str, &tokens[i + 1]);
-			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s, raw %s", state, get_json_token_value(json_str, &tokens[i + 1]));
+			ADDLOG_INFO(LOG_FEATURE_API, "Setting state %s, raw %s, > %s > %s", state, get_json_token_value(json_str, &tokens[i + 1]), &tokens[i], tokens[i]);
 			params.state = state;
 			i++;
 		}
