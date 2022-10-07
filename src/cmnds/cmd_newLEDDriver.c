@@ -1,4 +1,5 @@
 
+#include "stdio.h"
 #include "../logging/logging.h"
 #include "../new_pins.h"
 #include "../new_cfg.h"
@@ -60,6 +61,8 @@ float g_cfg_colorScaleToChannel = 100.0f/255.0f;
 int g_numBaseColors = 5;
 float g_brightness = 1.0f;
 
+float channelColorScale[5] = {1.0f,0.65f,0.45f,1.0f,1.0f};
+
 // NOTE: in this system, enabling/disabling whole led light bulb
 // is not changing the stored channel and brightness values.
 // They are kept intact so you can reenable the bulb and keep your color setting
@@ -104,7 +107,7 @@ int shouldSendRGB() {
 }
 
 
-void apply_smart_light() {
+void apply_smart_light(double transition) {
 	int i;
 	int firstChannelIndex;
 	int channelToUse;
@@ -135,8 +138,8 @@ void apply_smart_light() {
 				finalRGBCW[i] = baseColors[i] * g_brightness;
 			}
 		}
-		CHANNEL_Set(firstChannelIndex, value_cold_or_warm, CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT);
-		CHANNEL_Set(firstChannelIndex+1, value_brightness, CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT);
+		CHANNEL_Set(firstChannelIndex, value_cold_or_warm, CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT, transition);
+		CHANNEL_Set(firstChannelIndex+1, value_brightness, CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT, transition);
 	} else {
 		for(i = 0; i < 5; i++) {
 			float raw, final;
@@ -170,20 +173,20 @@ void apply_smart_light() {
 			channelToUse = firstChannelIndex + i;
 
 			// log printf with %f crashes N platform?
-			//ADDLOG_INFO(LOG_FEATURE_CMD, "apply_smart_light: ch %i raw is %f, bright %f, final %f, enableAll is %i",
-			//	channelToUse,raw,g_brightness,final,g_lightEnableAll);
+			ADDLOG_INFO(LOG_FEATURE_CMD, "apply_smart_light: ch %i raw is %f, bright %f, final %f, enableAll is %i, scale %f",
+				channelToUse,raw,g_brightness,final,g_lightEnableAll, channelColorScale[i]);
 
 			if(isCWMode()) {
 				// in CW mode, we have only set two channels
 				// We don't have RGB channels
 				// so, do simple mapping
 				if(i == 3) {
-					CHANNEL_Set(firstChannelIndex+0, final * g_cfg_colorScaleToChannel, CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT);
+					CHANNEL_Set(firstChannelIndex+0, final * g_cfg_colorScaleToChannel * channelColorScale[i], CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT, transition);
 				} else if(i == 4) {
-					CHANNEL_Set(firstChannelIndex+1, final * g_cfg_colorScaleToChannel, CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT);
+					CHANNEL_Set(firstChannelIndex+1, final * g_cfg_colorScaleToChannel * channelColorScale[i], CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT, transition);
 				}
 			} else {
-				CHANNEL_Set(channelToUse, final * g_cfg_colorScaleToChannel, CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT);
+				CHANNEL_Set(channelToUse, final * g_cfg_colorScaleToChannel * channelColorScale[i], CHANNEL_SET_FLAG_SKIP_MQTT | CHANNEL_SET_FLAG_SILENT, transition);
 			}
 		}
 	}
@@ -200,6 +203,24 @@ void apply_smart_light() {
 	}
 }
 
+static char LED_SendStateChange() {
+	char result[120];
+
+	char state[3];
+
+	sprintf(
+		result,
+		"{\"state\":\"%s\",\"color_mode\":\"rgb\",\"color\":{\"r\":%i,\"g\":%i,\"b\":%i},\"brightness\":%.2f}",
+		g_lightEnableAll ? "ON" : "OFF",
+		(int)baseColors[0],
+		(int)baseColors[1],
+		(int)baseColors[2],
+		g_brightness / g_cfg_brightnessMult
+	);
+	ADDLOG_INFO(LOG_FEATURE_CMD, " Built json payload %s",result);
+	MQTT_PublishMain_StringString("led_stateJson", result, 0);
+}
+
 static OBK_Publish_Result sendColorChange() {
 	char s[16];
 	byte c[3];
@@ -213,7 +234,7 @@ static OBK_Publish_Result sendColorChange() {
 	c[2] = (byte)(baseColors[2]);
 	
 	sprintf(s,"%02X%02X%02X",c[0],c[1],c[2]);
-
+	LED_SendStateChange();
 	return MQTT_PublishMain_StringString("led_basecolor_rgb",s, 0);
 }
 void LED_GetBaseColorString(char * s) {
@@ -238,17 +259,18 @@ static void sendFinalColor() {
 	c[2] = (byte)(finalColors[2]);
 	
 	sprintf(s,"%02X%02X%02X",c[0],c[1],c[2]);
-
+	LED_SendStateChange();
 	MQTT_PublishMain_StringString("led_finalcolor_rgb",s, 0);
 }
 OBK_Publish_Result LED_SendDimmerChange() {
 	int iValue;
 
 	iValue = g_brightness / g_cfg_brightnessMult;
-
+	LED_SendStateChange();
 	return MQTT_PublishMain_StringInt("led_dimmer", iValue);
 }
 static OBK_Publish_Result sendTemperatureChange(){
+	LED_SendStateChange();
 	return MQTT_PublishMain_StringInt("led_temperature", (int)led_temperature_current);
 }
 float LED_GetTemperature() {
@@ -292,7 +314,7 @@ void LED_SetTemperature(int tmpInteger, bool bApply) {
 	if(bApply) {
 		g_lightMode = Light_Temperature;
 		sendTemperatureChange();
-		apply_smart_light();
+		apply_smart_light(CFG_GetFadeSpeed());
 	}
 
 }
@@ -312,13 +334,15 @@ static int temperature(const void *context, const char *cmd, const char *args, i
 	//}
 	//return 0;
 }
+
 OBK_Publish_Result LED_SendEnableAllState() {
+	LED_SendStateChange();
 	return MQTT_PublishMain_StringInt("led_enableAll",g_lightEnableAll);
 }
 void LED_SetEnableAll(int bEnable) {
 	g_lightEnableAll = bEnable;
 
-	apply_smart_light();
+	apply_smart_light(CFG_GetFadeSpeed());
 #ifndef OBK_DISABLE_ALL_DRIVERS
 	DRV_DGR_OnLedEnableAllChange(bEnable);
 #endif
@@ -365,24 +389,60 @@ static int commandJson(const void *context, const char *cmd, const char *args, i
 
 	const cJSON *state = NULL;
 	const cJSON *transition = NULL;
+	const cJSON *brightness = NULL;
+	const cJSON *color = NULL;
+
+	double transitionDuration = CFG_GetFadeSpeed();
 
 	state = cJSON_GetObjectItemCaseSensitive(json, "state");
 	if (cJSON_IsString(state) && (state->valuestring != NULL))
 	{
-			ADDLOG_INFO(LOG_FEATURE_CMD, "Should set state %s", state->valuestring);
+			ADDLOG_INFO(LOG_FEATURE_CMD, "Should set state %s, %i", state->valuestring, (int)enableAll);
+			g_lightEnableAll = parsePowerArgument(state->valuestring);
 	}
 
 	transition = cJSON_GetObjectItemCaseSensitive(json, "transition");
-	if (cJSON_IsNumber(state))
+	if (cJSON_IsNumber(transition))
 	{
-			ADDLOG_INFO(LOG_FEATURE_CMD, "Should set transition %d", state->valuedouble);
+			ADDLOG_INFO(LOG_FEATURE_CMD, "Should set transition %f", transition->valuedouble);
+			transitionDuration = transition->valuedouble * 1000;
 	}
+
+	brightness = cJSON_GetObjectItemCaseSensitive(json, "brightness");
+	if (cJSON_IsNumber(brightness))
+	{
+			ADDLOG_INFO(LOG_FEATURE_CMD, "Should set brightness %f", brightness->valuedouble);
+			g_brightness = brightness->valuedouble * g_cfg_brightnessMult;
+	}
+
+	color = cJSON_GetObjectItemCaseSensitive(json, "color");
+	if (cJSON_IsObject(color))
+	{
+		
+		const cJSON *red = cJSON_GetObjectItem(color, "r");
+		const cJSON *green = cJSON_GetObjectItem(color, "g");
+		const cJSON *blue = cJSON_GetObjectItem(color, "b");
+
+		g_lightMode = Light_RGB;
+			
+		baseColors[0] = cJSON_GetNumberValue(red);
+		baseColors[1] = cJSON_GetNumberValue(green);
+		baseColors[2] = cJSON_GetNumberValue(blue);
+
+		RGBtoHSV(baseColors[0]/255.0f, baseColors[1]/255.0f, baseColors[2]/255.0f, &g_hsv_h, &g_hsv_s, &g_hsv_v);
+	}
+
+	apply_smart_light(transitionDuration);
+	LED_SendStateChange();
+	// emit all state changes
 
 	end:
 	cJSON_Delete(json);
+
 	return status;
 	
 }
+
 int LED_IsRunningDriver() {
 	if(PIN_CountPinsWithRoleOrRole(IOR_PWM,IOR_PWM_n))
 		return 1;
@@ -401,7 +461,7 @@ void LED_SetDimmer(int iVal) {
 	DRV_DGR_OnLedDimmerChange(iVal);
 #endif
 
-	apply_smart_light();
+	apply_smart_light(CFG_GetFadeSpeed());
 	LED_SendDimmerChange();
 
 	if(shouldSendRGB()) {
@@ -437,7 +497,7 @@ void LED_SetFinalRGB(byte r, byte g, byte b) {
 
 	RGBtoHSV(baseColors[0]/255.0f, baseColors[1]/255.0f, baseColors[2]/255.0f, &g_hsv_h, &g_hsv_s, &g_hsv_v);
 
-	apply_smart_light();
+	apply_smart_light(CFG_GetFadeSpeed());
 
 	// TODO
 	if(0) {
@@ -502,7 +562,7 @@ int LED_SetBaseColor(const void *context, const char *cmd, const char *args, int
 			
 			RGBtoHSV(baseColors[0]/255.0f, baseColors[1]/255.0f, baseColors[2]/255.0f, &g_hsv_h, &g_hsv_s, &g_hsv_v);
 
-			apply_smart_light();
+			apply_smart_light(CFG_GetFadeSpeed());
 			sendColorChange();
 			if(CFG_HasFlag(OBK_FLAG_MQTT_BROADCASTLEDPARAMSTOGETHER)) {
 				LED_SendDimmerChange();
@@ -554,7 +614,7 @@ static void onHSVChanged() {
 
 	sendColorChange();
 
-	apply_smart_light();
+	apply_smart_light(CFG_GetFadeSpeed());
 
 	
 	if(CFG_HasFlag(OBK_FLAG_MQTT_BROADCASTLEDFINALCOLOR)) {
@@ -621,7 +681,7 @@ void NewLED_RestoreSavedStateIfNeeded() {
 		baseColors[0] = rgb[0];
 		baseColors[1] = rgb[1];
 		baseColors[2] = rgb[2];
-		apply_smart_light();
+		apply_smart_light(CFG_GetFadeSpeed());
 	} else {
 		// set, but do not apply
 		LED_SetTemperature(250,0);

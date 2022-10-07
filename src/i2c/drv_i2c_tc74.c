@@ -31,5 +31,5 @@ void DRV_I2C_TC74_RunDevice(i2cDevice_t *dev)
 
 	temp = DRV_I2C_TC74_readTemperature(tc74->base.addr, tc74->base.busType);
 
-	CHANNEL_Set(tc74->targetChannel, temp, 0);
+	CHANNEL_Set(tc74->targetChannel, temp, 0, 0);
 }

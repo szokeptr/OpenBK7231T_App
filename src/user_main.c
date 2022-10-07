@@ -210,7 +210,7 @@ void Main_OnEverySecond()
 				value = HAL_ADC_Read(i);
 
 			//	ADDLOGF_INFO("ADC %i=%i\r\n", i,value);
-				CHANNEL_Set(g_cfg.pins.channels[i],value, CHANNEL_SET_FLAG_SILENT);
+				CHANNEL_Set(g_cfg.pins.channels[i],value, CHANNEL_SET_FLAG_SILENT, 0);
 			}
 		}
 	}

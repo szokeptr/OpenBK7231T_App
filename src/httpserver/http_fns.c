@@ -156,7 +156,7 @@ int http_fn_index(http_request_t *request) {
     if(http_getArg(request->url,"on",tmpA,sizeof(tmpA))) {
         j = atoi(tmpA);
         hprintf128(request,"<h3>Enabled %i!</h3>",j);
-        CHANNEL_Set(j,255,1);
+        CHANNEL_Set(j,255,1,0);
     }
     if(http_getArg(request->url,"rgb",tmpA,sizeof(tmpA))) {
         hprintf128(request,"<h3>Set RGB to %s!</h3>",tmpA);
@@ -166,7 +166,7 @@ int http_fn_index(http_request_t *request) {
     if(http_getArg(request->url,"off",tmpA,sizeof(tmpA))) {
         j = atoi(tmpA);
         hprintf128(request,"<h3>Disabled %i!</h3>",j);
-        CHANNEL_Set(j,0,1);
+        CHANNEL_Set(j,0,1,0);
     }
     if(http_getArg(request->url,"pwm",tmpA,sizeof(tmpA))) {
         int newPWMValue = atoi(tmpA);
@@ -177,7 +177,7 @@ int http_fn_index(http_request_t *request) {
 		} else {
 			hprintf128(request,"<h3>Changed pwm %i to %i!</h3>",j,newPWMValue);
 		}
-        CHANNEL_Set(j,newPWMValue,1);
+        CHANNEL_Set(j,newPWMValue,1,0);
     }
     if(http_getArg(request->url,"dim",tmpA,sizeof(tmpA))) {
         int newDimmerValue = atoi(tmpA);
@@ -188,14 +188,14 @@ int http_fn_index(http_request_t *request) {
 		} else {
 			hprintf128(request,"<h3>Changed dimmer %i to %i!</h3>",j,newDimmerValue);
 		}
-        CHANNEL_Set(j,newDimmerValue,1);
+        CHANNEL_Set(j,newDimmerValue,1,0);
     }
     if(http_getArg(request->url,"set",tmpA,sizeof(tmpA))) {
         int newSetValue = atoi(tmpA);
         http_getArg(request->url,"setIndex",tmpA,sizeof(tmpA));
         j = atoi(tmpA);
         hprintf128(request,"<h3>Changed channel %i to %i!</h3>",j,newSetValue);
-        CHANNEL_Set(j,newSetValue,1);
+        CHANNEL_Set(j,newSetValue,1,0);
     }
         if(http_getArg(request->url,"restart",tmpA,sizeof(tmpA))) {
             poststr(request,"<h5> Module will restart soon</h5>");

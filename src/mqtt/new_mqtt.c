@@ -335,7 +335,7 @@ int channelSet(mqtt_request_t* request){
   addLogAdv(LOG_INFO,LOG_FEATURE_MQTT,"MQTT client in mqtt_incoming_data_cb data is %s for ch %i\n", copy, channel);
 
   iValue = atoi((char *)copy);
-  CHANNEL_Set(channel,iValue,0);
+  CHANNEL_Set(channel,iValue,0,0);
 
   // return 1 to stop processing callbacks here.
   // return 0 to allow later callbacks to process this topic.
@@ -346,7 +346,7 @@ int channelSet(mqtt_request_t* request){
 // this accepts cmnd/<clientId>/<xxx> to receive data to set channels
 int tasCmnd(mqtt_request_t* request){
   // we only need a few bytes to receive a decimal number 0-100
-  char copy[64];
+  char copy[256];
   int len = request->receivedLen;
   const char *p = request->topic;
 

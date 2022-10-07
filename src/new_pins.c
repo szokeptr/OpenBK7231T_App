@@ -60,7 +60,7 @@ char g_enable_pins = 0;
 
 // it was nice to have it as bits but now that we support PWM...
 //int g_channelStates;
-int g_channelValues[CHANNEL_MAX] = { 0 };
+double g_channelValues[CHANNEL_MAX] = { 0 };
 
 pinButton_s g_buttons[PLATFORM_GPIO_MAX];
 
@@ -260,11 +260,11 @@ void CHANNEL_SetAll(int iVal, int iFlags) {
 		case IOR_LED_n:
 		case IOR_Relay:
 		case IOR_Relay_n:
-			CHANNEL_Set(g_cfg.pins.channels[i],iVal,iFlags);
+			CHANNEL_Set(g_cfg.pins.channels[i],iVal,iFlags,0);
 			break;
 		case IOR_PWM:
 		case IOR_PWM_n:
-			CHANNEL_Set(g_cfg.pins.channels[i],iVal,iFlags);
+			CHANNEL_Set(g_cfg.pins.channels[i],iVal,iFlags,0);
 			break;
 
 		default:
@@ -313,7 +313,7 @@ void CHANNEL_DoSpecialToggleAll() {
 
 				valToSet = CHANNEL_FindMaxValueForChannel(i);
 
-				CHANNEL_Set(i,valToSet,0);
+				CHANNEL_Set(i,valToSet,0,0);
 			}
 		}
 	}
@@ -602,21 +602,22 @@ float BezierBlend(float t)
     return t * t * (3.0f - 2.0f * t);
 }
 
-const float durationMs = 600.0f;
-const float frames = 120.0f; 
+channelTransitionConfig_t *channelActiveTransitions[5];
 static xTaskHandle test_thread = NULL;
 static void timer_handler( beken_thread_arg_t arg )
 {
 	channelTransitionConfig_t *config = (channelTransitionConfig_t*) arg;
 	addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"Channel update timer handler called: ch=%i; from=%i; to=%i", config->ch, config->from, config->to);
 
-	int delta = config->to - config->from;
-	int from = config->from;
+	double delta = config->to - config->from;
+	double from = config->from;
 	int i = 0;
-	int previous = config->from;
+	double previous = config->from;
 	int j;
 
 	int pwmChannel = NULL;
+
+	const float frames = config->duration / (1000 / 60); 
 
   for(j = 0; j < PLATFORM_GPIO_MAX; j++) {
     if(g_cfg.pins.channels[j] == config->ch) {
@@ -633,13 +634,16 @@ static void timer_handler( beken_thread_arg_t arg )
 		return;
 	}
 
-	for( ;; )
+	while( config->isStopped == 0 )
 	{	
-			vTaskDelay( durationMs / frames / portTICK_PERIOD_MS );
-			int stepVal = BezierBlend((float)i / frames) * delta;
-			int next = from + stepVal;
+			vTaskDelay( config->duration / 60 / portTICK_PERIOD_MS );
+			if (config->isStopped == 1) {
+				break;
+			}
+			double stepVal = BezierBlend((float)i / frames) * delta;
+			double next = from + stepVal;
 			if (previous != next) {
-				HAL_PIN_PWM_Update(pwmChannel,next);
+				HAL_PIN_PWM_SmoothUpdate(pwmChannel,next);
 				g_channelValues[config->ch] = next;
 				// Channel_OnChangedTransitionStep(config->ch, next);
 			}
@@ -651,27 +655,40 @@ static void timer_handler( beken_thread_arg_t arg )
 			}
 	}
 
-	g_channelValues[config->ch] = config->to;
+	if (config->isStopped == 0) {
+		g_channelValues[config->ch] = config->to;
 
-	Channel_OnChanged(config->ch, config->from, config->iFlags);
+		Channel_OnChanged(config->ch, config->from, config->iFlags);
+		channelActiveTransitions[config->ch] = NULL;
+	}
 
 	vPortFree(config);
-
 	rtos_delete_thread( NULL );
 	
 }
 
-void myInit(int ch, int from, int to, int iFlags)
+void myInit(int ch, int from, int to, int iFlags, double transitionDuration)
 {
+		if (transitionDuration == 0) {
+			g_channelValues[ch] = to;
 
+			Channel_OnChanged(ch, from, iFlags);
+			return;
+		}
+
+		if (channelActiveTransitions[ch] != NULL) {
+			channelActiveTransitions[ch]->isStopped = 1;
+		}
+		
 		channelTransitionConfig_t *config = pvPortMalloc( sizeof ( channelTransitionConfig_t ) );
 		config->ch = ch;
 		config->from = from;
 		config->to = to;
 		config->iFlags = iFlags;
-
+		config->duration = transitionDuration;
+		config->isStopped = 0;
     OSStatus err = kNoErr;
-
+		channelActiveTransitions[ch] = config;
     err = rtos_create_thread( &test_thread, 100,
 									"Test Thread",
 									(beken_thread_function_t)timer_handler,
@@ -684,7 +701,7 @@ void myInit(int ch, int from, int to, int iFlags)
     ASSERT(kNoErr == err);
 }
 
-void CHANNEL_Set(int ch, int iVal, int iFlags) {
+void CHANNEL_Set(int ch, int iVal, int iFlags, double transitionDuration) {
 	int prevValue;
 	int bForce;
 	int bSilent;
@@ -723,7 +740,7 @@ void CHANNEL_Set(int ch, int iVal, int iFlags) {
 		addLogAdv(LOG_INFO, LOG_FEATURE_GENERAL,"CHANNEL_Set channel %i has changed to %i (flags %i)\n\r",ch,iVal,iFlags);
 	}
 
-	myInit(ch, prevValue, iVal, iFlags);
+	myInit(ch, prevValue, iVal, iFlags, transitionDuration);
 	
 }
 void CHANNEL_AddClamped(int ch, int iVal, int min, int max) {
@@ -1068,7 +1085,7 @@ void PIN_ticks(void *param)
 			// read pin digital value (and already invert it if needed)
 			value = PIN_ReadDigitalInputValue_WithInversionIncluded(i);
 #if 0
-			CHANNEL_Set(g_cfg.pins.channels[i], value,0);
+			CHANNEL_Set(g_cfg.pins.channels[i], value,0,0);
 #else
 			// debouncing
 			if(value) {
@@ -1076,7 +1093,7 @@ void PIN_ticks(void *param)
 					if(g_lastValidState[i] != value) {
 						// became up
 						g_lastValidState[i] = value;
-						CHANNEL_Set(g_cfg.pins.channels[i], value,0);
+						CHANNEL_Set(g_cfg.pins.channels[i], value,0,0);
 					}
 				} else {
 					g_timesUp[i]++;
@@ -1087,7 +1104,7 @@ void PIN_ticks(void *param)
 					if(g_lastValidState[i] != value) {
 						// became down
 						g_lastValidState[i] = value;
-						CHANNEL_Set(g_cfg.pins.channels[i], value,0);
+						CHANNEL_Set(g_cfg.pins.channels[i], value,0,0);
 					}
 				} else {
 					g_timesDown[i]++;

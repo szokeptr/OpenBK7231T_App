@@ -117,3 +117,27 @@ void HAL_PIN_PWM_Update(int index, int value) {
 	bk_pwm_update_param(pwmIndex, period, duty);
 #endif
 }
+
+void HAL_PIN_PWM_SmoothUpdate(int index, double value) {
+	int pwmIndex;
+
+	pwmIndex = PIN_GetPWMIndexForPinIndex(index);
+
+	// is this pin capable of PWM?
+	if(pwmIndex == -1) {
+		return;
+	}
+	if(value<0)
+		value = 0;
+	if(value>100)
+		value = 100;
+
+	//uint32_t value_upscaled = value * 10.0f; //Duty cycle 0...100 -> 0...1000
+	uint32_t period = (26000000 / pwmfrequency); //TODO: Move to global variable and set in init func so it does not have to be recalculated every time...
+	uint32_t duty = (value / 100.0 * period); //No need to use upscaled variable
+#if PLATFORM_BK7231N
+	bk_pwm_update_param(pwmIndex, period, duty,0,0);
+#else
+	bk_pwm_update_param(pwmIndex, period, duty);
+#endif
+}

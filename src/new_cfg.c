@@ -9,6 +9,7 @@
 #include "cmnds/cmd_public.h"
 
 #define DEFAULT_BOOT_SUCCESS_TIME 30
+#define DEFAULT_LED_TRANSITION_TIME_MS 650.0f;
 
 mainConfig_t g_cfg;
 int g_configInitialized = 0;
@@ -123,6 +124,7 @@ void CFG_SetDefaultConfig() {
 	g_cfg.ident1 = CFG_IDENT_1;
 	g_cfg.ident2 = CFG_IDENT_2;
 	g_cfg.timeRequiredToMarkBootSuccessfull = DEFAULT_BOOT_SUCCESS_TIME;
+	g_cfg.defaultTransitionDuration = DEFAULT_LED_TRANSITION_TIME_MS;
 	strcpy(g_cfg.ping_host,"192.168.0.1");
 	strcpy(g_cfg.mqtt_host, "192.168.0.113");
 	// g_cfg.mqtt_clientId is set as shortDeviceName below
@@ -415,6 +417,15 @@ short CFG_GetChannelStartupValue(int channelIndex) {
 		return 0;
 	}
 	return g_cfg.startChannelValues[channelIndex];
+}
+void CFG_SetFadeSpeed(double newValue) {
+	if(g_cfg.defaultTransitionDuration != newValue) {
+		g_cfg.defaultTransitionDuration = newValue;
+		g_cfg_pendingChanges++;
+	}
+}
+double CFG_GetFadeSpeed() {
+	return g_cfg.defaultTransitionDuration;
 }
 void PIN_SetPinChannelForPinIndex(int index, int ch) {
 	if(index < 0 || index >= PLATFORM_GPIO_MAX) {

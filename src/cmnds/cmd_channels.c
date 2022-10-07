@@ -23,7 +23,7 @@ static int CMD_SetChannel(const void *context, const char *cmd, const char *args
 	ch = Tokenizer_GetArgInteger(0);
 	val = Tokenizer_GetArgInteger(1);
 
-	CHANNEL_Set(ch,val, false);
+	CHANNEL_Set(ch,val, false, 0);
 
 	return 1;
 }
@@ -74,6 +74,21 @@ static int CMD_ClampChannel(const void *context, const char *cmd, const char *ar
 	max = Tokenizer_GetArgInteger(2);
 
 	CHANNEL_AddClamped(ch,0, min, max);
+
+	return 1;
+}
+
+static int CMD_SetDefaultFadeDuration(const void *context, const char *cmd, const char *args, int cmdFlags){
+	int valueInMiliseconds;
+	Tokenizer_TokenizeString(args);
+	if(Tokenizer_GetArgsCount() != 1) {
+		ADDLOG_INFO(LOG_FEATURE_CMD, "CMD_SetDefaultFadeDuration: command requires 1 argument");
+		return 1;
+	}
+
+	valueInMiliseconds = Tokenizer_GetArgInteger(0);
+
+	CFG_SetFadeSpeed(valueInMiliseconds);
 
 	return 1;
 }
@@ -186,5 +201,5 @@ void CMD_InitChannelCommands(){
     CMD_RegisterCommand("GetChannel", "", CMD_GetChannel, "qqqqq0", NULL);
     CMD_RegisterCommand("GetReadings", "", CMD_GetReadings, "qqqqq0", NULL);
     CMD_RegisterCommand("ShortName", "", CMD_ShortName, "qqqqq0", NULL);
-
+		CMD_RegisterCommand("SetDefaultFadeDuration", "", CMD_SetDefaultFadeDuration, "qqqqq0", NULL);
 }

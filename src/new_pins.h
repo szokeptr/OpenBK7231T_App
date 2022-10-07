@@ -149,6 +149,7 @@ typedef struct mainConfig_s {
 	char longDeviceName[64];
 	pinsState_t pins;
 	short startChannelValues[CHANNEL_MAX];
+	double defaultTransitionDuration;
 	int dgr_sendFlags;
 	int dgr_recvFlags;
 	char dgr_name[16];
@@ -168,6 +169,8 @@ typedef struct channelTransitionConfig_s {
 	int from;
 	int to;
 	int iFlags;
+	double duration;
+	int isStopped;
 } channelTransitionConfig_t;
 
 extern mainConfig_t g_cfg;
@@ -199,7 +202,7 @@ bool CHANNEL_Check(int ch);
 void PIN_SetGenericDoubleClickCallback(void (*cb)(int pinIndex));
 void CHANNEL_Pulse(int ch, int iVal, int iFlags);
 // CHANNEL_SET_FLAG_*
-void CHANNEL_Set(int ch, int iVal, int iFlags);
+void CHANNEL_Set(int ch, int iVal, int iFlags, double transitionDuration);
 void CHANNEL_Add(int ch, int iVal);
 void CHANNEL_AddClamped(int ch, int iVal, int min, int max);
 int CHANNEL_Get(int ch);

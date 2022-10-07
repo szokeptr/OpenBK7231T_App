@@ -220,10 +220,10 @@ void DRV_DGR_processPower(int relayStates, byte relaysCount) {
 				if(CHANNEL_HasChannelPinWithRoleOrRole(ch,IOR_PWM,IOR_PWM_n)) {
 
 				} else {
-					CHANNEL_Set(ch,1,0);
+					CHANNEL_Set(ch,1,0,0);
 				}
 			} else {
-				CHANNEL_Set(ch,0,0);
+				CHANNEL_Set(ch,0,0,0);
 			}
 		}
 	}

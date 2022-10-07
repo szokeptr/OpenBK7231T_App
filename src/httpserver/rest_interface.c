@@ -1109,7 +1109,7 @@ static int http_rest_post_channels(http_request_t *request){
         int chanval;
         jsmntok_t *g = &t[i];
         chanval = atoi(json_str + g->start);
-        CHANNEL_Set(i-1, chanval, 0);
+        CHANNEL_Set(i-1, chanval, 0, 0);
         ADDLOG_DEBUG(LOG_FEATURE_API, "Set of chan %d to %d", i,
                 chanval);
     }
